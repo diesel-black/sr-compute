@@ -37,18 +37,28 @@ sr-compute/
 │   ├── metrics.py          # Four Thread 7 measurements (R25-R27 + RG marginality probe)
 │   └── visualization.py    # Reserved for sweep plots
 ├── models/
-│   ├── 1plus1/             # CFE / MFE time evolution (Phase 2)
-│   ├── 2plus1/             # Reserved
-│   └── 3plus1/             # Reserved
+│   ├── __init__.py         # Package marker for models/
+│   ├── dim_1plus1/
+│   │   ├── cfe.py          # Laplace–Beltrami, CFE RHS, integrate_cfe (fixed g)
+│   │   ├── mfe.py          # MFE RHS, coupled_ivp in log(g), integrate_coupled, run_simulation
+│   │   ├── coupling.py     # Reserved (1+1-specific K if split from shared later)
+│   │   └── __init__.py
+│   ├── dim_2plus1/             # Reserved
+│   ├── dim_3plus1/             # Reserved
+│   └── __init__.py
 ├── experiments/
 │   └── polynomial-sweep/   # config, run, analyze, results (Phase 3)
-├── tests/                  # pytest suite, one file per shared module
+├── tests/                  # pytest: shared/* + test_dim_1plus1_cfe.py, test_dim_1plus1_mfe.py
 └── pytest.ini
 ```
 
-Implemented: everything under shared/ and tests/. 39 tests passing.
+**Implemented:** `shared/`, Phase 2 `models/dim_1plus1/` (CFE, MFE, coupled driver), and the full pytest suite (run `pytest tests/`; count is expected in the low 50s as phases land).
 
-Intentionally empty: models/1plus1/, experiments/polynomial-sweep/ drivers, shared/visualization.py, and models/2plus1/ and models/3plus1/ until Phase 2 and 3 land.
+**Still to build:** `experiments/polynomial-sweep/` drivers and results (Phase 3), `shared/visualization.py`, and `models/2plus1/` / `models/3plus1/`. `models/dim_1plus1/coupling.py` is a placeholder (file not present until split from `shared/coupling.py`).
+
+**Imports:** from the repo root, `pythonpath` is set for pytest; use `from models.dim_1plus1 import run_simulation` (or import `cfe` / `mfe` submodules) as you would any other package.
+
+**Coupled IVP (numerics):** `integrate_coupled` advances `concat(C, log g)` so `g` stays positive and matches the metric used in `Delta_g C`; histories unpack to `g` via `exp`. Default `solve_ivp` events flag very small or very large `g` (see `models/dim_1plus1/mfe.py`). Stiff runs may need implicit methods or looser tolerances than the defaults.
 
 ## The four measurements (Thread 7)
 
