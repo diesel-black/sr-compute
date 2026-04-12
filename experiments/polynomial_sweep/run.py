@@ -281,6 +281,15 @@ def run_single(
         call_kwargs["atol"] = float(integ["atol"])
 
     if max_wallclock is not None and max_wallclock > 0:
+        exec_mode = f"subprocess (cap {max_wallclock:g}s, expect a second Python PID)"
+    else:
+        exec_mode = "in-process (this interpreter runs SciPy)"
+    print(
+        f"[n={n}] IVP: method={method}, t_span={t_span}, max_step={max_step}, {exec_mode}",
+        flush=True,
+    )
+
+    if max_wallclock is not None and max_wallclock > 0:
         sim = _run_simulation_wallclock(float(max_wallclock), params, call_kwargs)
     else:
         sim = run_simulation(params, **call_kwargs)
@@ -334,8 +343,8 @@ def run_sweep(
 ) -> list[dict[str, Any]]:
     """Run ``run_single`` for each ``n`` in ``n_values``; optionally persist npz + json.
 
-    Pass ``max_wallclock=None`` (default) to run in-process. The CLI sets this from
-    ``SWEEP_DEFAULT_WALLCLOCK_SEC`` unless ``--quick`` or ``--wallclock 0``.
+    Pass ``max_wallclock=None`` (default) to run in-process. The CLI uses
+    ``SWEEP_DEFAULT_WALLCLOCK_SEC`` when set, or ``--wallclock SEC``; ``--quick`` forces in-process.
     """
     ns = list(N_VALUES if n_values is None else n_values)
     out_dir = Path(results_dir or RESULTS_DIR)
@@ -428,8 +437,9 @@ if __name__ == "__main__":
         default=None,
         metavar="SEC",
         help=(
-            "Max wall seconds per n (spawn subprocess; 0 = unlimited). "
-            f"Default {SWEEP_DEFAULT_WALLCLOCK_SEC} when omitted; disabled with --quick."
+            "Max wall seconds per n via spawn subprocess (0 = in-process unlimited). "
+            "Omitted: use SWEEP_DEFAULT_WALLCLOCK_SEC from config (None = always in-process). "
+            "Example: --wallclock 900"
         ),
     )
     args = parser.parse_args()
@@ -444,8 +454,10 @@ if __name__ == "__main__":
         wallclock_sec: Optional[float] = None
     elif args.wallclock is not None:
         wallclock_sec = None if args.wallclock <= 0 else float(args.wallclock)
-    else:
+    elif SWEEP_DEFAULT_WALLCLOCK_SEC is not None and SWEEP_DEFAULT_WALLCLOCK_SEC > 0:
         wallclock_sec = float(SWEEP_DEFAULT_WALLCLOCK_SEC)
+    else:
+        wallclock_sec = None
 
     run_sweep(
         n_values=args.n or N_VALUES,

@@ -37,6 +37,8 @@ INTEGRATION = {
 # Higher polynomial orders stiffen the coupled IVP; implicit Radau reduces step-collapse stalls.
 # Merged in run_single as: INTEGRATION -> overrides[n] -> caller integration (e.g. QUICK wins last).
 INTEGRATION_OVERRIDES_BY_N = {
+    # n=2 brake is singular at psi_bar=0; explicit RK45 often stalls; implicit step is more robust here.
+    2: {"method": "Radau", "max_step": 1.0, "rtol": 1e-5, "atol": 1e-8},
     4: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
     5: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
     6: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
@@ -50,9 +52,10 @@ RECONSTRUCTION_LUT = {
     "n_samples": 10_000,
 }
 
-# Default wall-clock cap per n when running ``python -m experiments.polynomial_sweep.run`` (subprocess).
-# ``run_sweep(..., max_wallclock=None)`` and ``--quick`` disable. Use ``--wallclock 0`` for unlimited.
-SWEEP_DEFAULT_WALLCLOCK_SEC = 900.0
+# Optional wall-clock cap per n for ``python -m experiments.polynomial_sweep.run`` (uses spawn subprocess).
+# Default None: run in the main process so monitors show one Python and output is not split across PIDs.
+# Enable with CLI ``--wallclock 900`` if a single n can hang the whole sweep.
+SWEEP_DEFAULT_WALLCLOCK_SEC: float | None = None
 
 # Sampling range for metastable-state count in psi_bar space (matches tests/test_metrics.py)
 METASTABLE_PSI_RANGE = (-2.0, 2.0, 4001)
