@@ -1,0 +1,48 @@
+Thread 7 polynomial sweep: analysis report
+============================================================
+
+1. Predicted vs observed (main sweep, summary.json)
+
+Provisional structural targets (qualitative):
+  R25: kappa(Pi) equals 1 at n=3 (exponent n-3 vanishes); n>3 amplifies spatial dynamic range.
+  R26: metastable landscape count often 2 at cubic, 3 at quartic (cusp vs swallowtail class).
+  R27: spectral ratio departs from diffuse baseline when leading singular mode concentrates.
+  RG marginality: eta(f) and growth across coarse scales probe discrete brake consistency.
+
+Quantity               | n=2          | n=3          | n=4          | n=5          | n=6         
+-----------------------------------------------------------------------------------------------
+metastable_count       | 2            | 2            | 3            | 2            | 3           
+kappa (R25)            | 0.06206      | 1            | 3.983        | 1            | 1           
+spectral ratio (R27)   | 0.1772       | 0.1817       | 0.5188       | 0.1772       | 0.1772      
+eta at f=1             |              | 9            | 65.98        | 332.3        | 999         
+growth eta2/eta1       |              | 1            | 1.197        | 1            | 1           
+
+Sweep integration metadata (from n*_measurements.json when present):
+  n=2: Radau, t_final=0.0035253239786742015, success=False
+  n=3: RK45, t_final=8.920849566003108, success=True
+  n=4: Radau, t_final=8.379124675460567, success=False
+  n=5: Radau, t_final=30.0, success=True
+  n=6: Radau, t_final=30.0, success=True
+
+Honest confound (methodological): final-time and solver differ by n in the archived sweep.
+  Field-valued metrics (kappa, spectral ratio, eta) are not comparable across n unless
+  t_final and integration method are aligned. Metastable_count is computed on a fixed
+  psi_bar axis and is less sensitive to simulation time, but still reflects the same
+  potential landscape independent of the run.
+
+2. Parity experiment (results/parity/*.json)
+
+No parity JSON files found. After running the parity driver, this section compares n=3 Radau (full window) vs n=3 RK45 (metric event), and RK45 at n=4 and n=5 against the Radau sweep baselines.
+
+3. Clean findings (hold regardless of which solver produced the snapshot, with caveats)
+
+  Algebraic: at n=3, kappa(Pi) equals 1 by definition (exponent n-3=0); observed 1.
+  Metastable landscape count: 2 at n=3, 3 at n=4 (matches cusp vs swallowtail expectation in tests).
+  Cross-n eta scaling at f=1 (sweep snapshots): 9 -> 65.98 -> 332.3 -> 999 (roughly x7, x5, x3 multipliers stepwise n=3 to 6).
+  n=4 simultaneous breakpoint (sweep, Radau, early stop): kappa 3.983, spectral 0.5188, first growth 1.197.
+
+Caveat: the eta ladder uses each n's final field; if n=5 and n=6 fields are spatially flat due
+  to implicit integration, eta values are still defined but no longer probe the same
+  structural regime as shorter-time structured states at n=3 and n=4.
+
+(End of report.)

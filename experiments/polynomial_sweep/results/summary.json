@@ -1,0 +1,123 @@
+{
+  "2": {
+    "metastable_count": 2,
+    "condition_number": 0.06206002810893615,
+    "spectral_ratio": 0.1772453850905514,
+    "nonlocal_growth": {
+      "coarsening_factors": [
+        1.0,
+        1.2,
+        1.5,
+        2.0
+      ],
+      "eta_values": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "growth_rates": [
+        null,
+        null,
+        null
+      ],
+      "skipped": true
+    }
+  },
+  "3": {
+    "metastable_count": 2,
+    "condition_number": 1.0,
+    "spectral_ratio": 0.1817067468919137,
+    "nonlocal_growth": {
+      "coarsening_factors": [
+        1.0,
+        1.2,
+        1.5,
+        2.0
+      ],
+      "eta_values": [
+        8.999999919267248,
+        9.00000067896156,
+        8.999998877877312,
+        9.000000483784385
+      ],
+      "growth_rates": [
+        1.00000008441048,
+        0.999999799879543,
+        1.0000001784341415
+      ]
+    }
+  },
+  "4": {
+    "metastable_count": 3,
+    "condition_number": 3.9829855193490697,
+    "spectral_ratio": 0.5187519003393611,
+    "nonlocal_growth": {
+      "coarsening_factors": [
+        1.0,
+        1.2,
+        1.5,
+        2.0
+      ],
+      "eta_values": [
+        65.98268291969667,
+        78.99993643324531,
+        78.99994778369852,
+        78.99995366001082
+      ],
+      "growth_rates": [
+        1.1972828769238,
+        1.0000001436767385,
+        1.0000000743837492
+      ]
+    }
+  },
+  "5": {
+    "metastable_count": 2,
+    "condition_number": 1.000000053379939,
+    "spectral_ratio": 0.1772453850905569,
+    "nonlocal_growth": {
+      "coarsening_factors": [
+        1.0,
+        1.2,
+        1.5,
+        2.0
+      ],
+      "eta_values": [
+        332.3331942630402,
+        332.3331925722018,
+        332.33320435075166,
+        332.33319560924923
+      ],
+      "growth_rates": [
+        0.9999999949122195,
+        1.0000000354419905,
+        0.9999999736965722
+      ]
+    }
+  },
+  "6": {
+    "metastable_count": 3,
+    "condition_number": 1.0000000059585297,
+    "spectral_ratio": 0.17724538509055163,
+    "nonlocal_growth": {
+      "coarsening_factors": [
+        1.0,
+        1.2,
+        1.5,
+        2.0
+      ],
+      "eta_values": [
+        998.9991283119086,
+        998.9991282721178,
+        998.999111165561,
+        998.9991276901706
+      ],
+      "growth_rates": [
+        0.9999999999601693,
+        0.9999999828763045,
+        1.0000000165411655
+      ]
+    }
+  }
+}
