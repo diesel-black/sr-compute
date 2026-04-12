@@ -34,6 +34,14 @@ INTEGRATION = {
     "seed": 42,  # Reproducible initial conditions
 }
 
+# ReconstructionLUT for h(C) during coupled IVP (see models.dim_1plus1.run_simulation)
+# Wide C span avoids flat extrapolation when |C| grows before metric events; 10k samples is cheap at init.
+RECONSTRUCTION_LUT = {
+    "C_min": -10.0,
+    "C_max": 10.0,
+    "n_samples": 10_000,
+}
+
 # Sampling range for metastable-state count in psi_bar space (matches tests/test_metrics.py)
 METASTABLE_PSI_RANGE = (-2.0, 2.0, 4001)
 

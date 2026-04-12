@@ -27,6 +27,7 @@ from experiments.polynomial_sweep.config import (
     NONLOCAL,
     N_VALUES,
     QUICK,
+    RECONSTRUCTION_LUT,
     RESULTS_DIR,
 )
 
@@ -162,9 +163,11 @@ def run_single(
     grid: Optional[Mapping[str, Any]] = None,
     integration: Optional[Mapping[str, Any]] = None,
     seed: Optional[int] = None,
+    reconstruction_lut: Optional[Mapping[str, Any]] = None,
 ) -> dict[str, Any]:
     """One simulation at polynomial order ``n`` and four measurements on the final fields."""
     integ = {**INTEGRATION, **(integration or {})}
+    lut_cfg = {**RECONSTRUCTION_LUT, **(reconstruction_lut or {})}
     params = build_params(n, grid=grid, integration=integ)
     seed_eff = int(seed) if seed is not None else int(params["seed"])
     t_span = (float(params["t_span"][0]), float(params["t_span"][1]))
@@ -177,13 +180,16 @@ def run_single(
         seed=seed_eff,
         method=method,
         max_step=max_step,
+        lut_C_min=float(lut_cfg["C_min"]),
+        lut_C_max=float(lut_cfg["C_max"]),
+        lut_n_samples=int(lut_cfg["n_samples"]),
     )
 
     success = bool(sim["success"])
     message = str(sim["message"])
-    if not success or sim.get("t_events"):
+    if not success:
         warnings.warn(
-            f"[n={n}] Simulation reported success={success!r}, message={message!r}; "
+            f"[n={n}] Simulation reported success=False, message={message!r}; "
             "using final state for measurements.",
             UserWarning,
             stacklevel=1,
@@ -223,6 +229,7 @@ def run_sweep(
     seed: Optional[int] = None,
     save: bool = True,
     results_dir: Optional[str] = None,
+    reconstruction_lut: Optional[Mapping[str, Any]] = None,
 ) -> list[dict[str, Any]]:
     """Run ``run_single`` for each ``n`` in ``n_values``; optionally persist npz + json."""
     ns = list(N_VALUES if n_values is None else n_values)
@@ -232,7 +239,13 @@ def run_sweep(
 
     for n in ns:
         print(f"[n={n}] Starting simulation...", flush=True)
-        row = run_single(n, grid=grid, integration=integration, seed=seed)
+        row = run_single(
+            n,
+            grid=grid,
+            integration=integration,
+            seed=seed,
+            reconstruction_lut=reconstruction_lut,
+        )
         results.append(row)
         mc = row["measurements"]["metastable_count"]
         print(

@@ -229,8 +229,8 @@ def run_simulation(
     rtol: float = 1e-8,
     atol: float = 1e-10,
     use_reconstruction_lut: bool = True,
-    lut_C_min: float = -3.0,
-    lut_C_max: float = 3.0,
+    lut_C_min: float = -10.0,
+    lut_C_max: float = 10.0,
     lut_n_samples: int = 10_000,
 ) -> dict[str, Any]:
     """Initial conditions, coupled integration, spatial grid, and final reconstructed \(\bar\psi = h(C)\).
