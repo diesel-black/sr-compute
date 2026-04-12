@@ -8,7 +8,7 @@ For the full theory, axioms, Lagrangian, and dimensional roadmap, see the paper 
 
 ## Current focus
 
-"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 6 in the 1+1 model, with four simultaneous measurements testing provisional structural results R25 through R28 and related conjectures (Fisher-Rao identification, RG marginality of the brake). The experiment specification lives under `experiments/polynomial-sweep/`; the shared mathematics lives under `shared/`.
+"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 6 in the 1+1 model, with four simultaneous measurements testing provisional structural results R25 through R28 and related conjectures (Fisher-Rao identification, RG marginality of the brake). The experiment specification lives under `experiments/polynomial_sweep/`; the shared mathematics lives under `shared/`.
 
 ## Theory in brief
 
@@ -47,14 +47,14 @@ sr-compute/
 │   ├── dim_3plus1/             # Reserved
 │   └── __init__.py
 ├── experiments/
-│   └── polynomial-sweep/   # config, run, analyze, results (Phase 3)
+│   └── polynomial_sweep/   # config, run, analyze, results (Phase 3)
 ├── tests/                  # pytest: shared/* + test_dim_1plus1_cfe.py, test_dim_1plus1_mfe.py
 └── pytest.ini
 ```
 
-**Implemented:** `shared/`, Phase 2 `models/dim_1plus1/` (CFE, MFE, coupled driver), and the full pytest suite (run `pytest tests/`; count is expected in the low 50s as phases land).
+**Implemented:** `shared/`, Phase 2 `models/dim_1plus1/` (CFE, MFE, coupled driver), Phase 3 Part 1 `experiments/polynomial_sweep/` (config + sweep driver), and the full pytest suite (run `pytest tests/`; 56 tests as of Phase 3 Part 1).
 
-**Still to build:** `experiments/polynomial-sweep/` drivers and results (Phase 3), `shared/visualization.py`, and `models/2plus1/` / `models/3plus1/`. `models/dim_1plus1/coupling.py` is a placeholder (file not present until split from `shared/coupling.py`).
+**Still to build:** `experiments/polynomial_sweep/analyze.py` and full sweep figures (Phase 3 Part 2), `shared/visualization.py`, and `models/2plus1/` / `models/3plus1/`. `models/dim_1plus1/coupling.py` is a placeholder (file not present until split from `shared/coupling.py`).
 
 **Imports:** from the repo root, `pythonpath` is set for pytest; use `from models.dim_1plus1 import run_simulation` (or import `cfe` / `mfe` submodules) as you would any other package.
 
