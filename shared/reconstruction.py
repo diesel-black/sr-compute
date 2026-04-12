@@ -123,3 +123,133 @@ def reconstruct(C: ArrayLike, n: int, gamma: float, tol: float = 1e-12) -> np.nd
 def is_monotonic_region(psi_bar: ArrayLike, n: int, gamma: float) -> np.ndarray:
     """True where dC/d(psi_bar) > 0 for the coarse-grain map at (n, gamma)."""
     return coarse_grain_derivative(psi_bar, n, gamma) > 0.0
+
+
+def _c_min_even_branch(n: int, gamma: float) -> float:
+    """Minimum C on the principal-branch domain for even n (same as `reconstruct` / `_reconstruct_scalar`)."""
+    psi_c = _even_n_critical_point(n, gamma)
+    return float(psi_c + gamma * psi_c**n)
+
+
+class ReconstructionLUT:
+    """Precomputed 1D table for h(C) = reconstruct(C, n, gamma).
+
+    One-time construction uses the existing scalar `brentq` inverse; `__call__` uses `numpy.interp`
+    on the full field so coupled RHS evaluation avoids O(N) root solves per map evaluation.
+
+    Odd n: table spans [C_min, C_max] (caller-chosen). Out-of-range C uses flat extrapolation
+    (boundary psi) with a one-time warning per bound when any sample lies outside.
+
+    Even n: the principal branch exists only for C >= C_floor where C_floor matches `reconstruct`.
+    The table starts at max(C_min, C_floor). C < C_floor yields NaN, matching `reconstruct`.
+    """
+
+    def __init__(
+        self,
+        n: int,
+        gamma: float,
+        C_min: float,
+        C_max: float,
+        n_samples: int = 10_000,
+        tol: float = 1e-12,
+    ) -> None:
+        if C_max <= C_min:
+            raise ValueError("ReconstructionLUT requires C_max > C_min.")
+        if n_samples < 2:
+            raise ValueError("ReconstructionLUT requires n_samples >= 2.")
+        self.n = int(n)
+        self.gamma = float(gamma)
+        self._tol = float(tol)
+        self._warned_below = False
+        self._warned_above = False
+
+        if self.n % 2 == 1:
+            self._c_floor = float("-inf")
+            c_lo = float(C_min)
+        else:
+            self._c_floor = _c_min_even_branch(self.n, self.gamma)
+            c_lo = max(float(C_min), self._c_floor)
+
+        c_hi = float(C_max)
+        if c_hi <= c_lo:
+            raise ValueError(
+                f"ReconstructionLUT: effective C range empty (c_lo={c_lo}, C_max={c_hi}); "
+                "increase C_max or raise C_min above the even-n branch floor."
+            )
+
+        self.C_table = np.linspace(c_lo, c_hi, int(n_samples), dtype=float)
+        self.psi_table = np.asarray(
+            reconstruct(self.C_table, self.n, self.gamma, tol=self._tol),
+            dtype=float,
+        )
+
+    def __call__(self, C: ArrayLike) -> np.ndarray:
+        """Vectorized h(C); preserves array shape (0-d array in, 0-d array out)."""
+        C_arr = np.asarray(C, dtype=float)
+        scalar_input = C_arr.ndim == 0
+        flat = C_arr.ravel()
+        out_flat = np.empty_like(flat, dtype=float)
+
+        if self.n % 2 == 0:
+            below = flat < self._c_floor
+            out_flat[below] = np.nan
+            mid = flat[~below]
+            if mid.size:
+                interp = np.interp(
+                    mid,
+                    self.C_table,
+                    self.psi_table,
+                    left=float(self.psi_table[0]),
+                    right=float(self.psi_table[-1]),
+                )
+                out_flat[~below] = interp
+            lo_b = float(self.C_table[0])
+            hi_b = float(self.C_table[-1])
+            valid = ~below
+            if np.any(valid & (flat < lo_b)) and not self._warned_below:
+                warnings.warn(
+                    f"ReconstructionLUT(n={self.n}): C below table minimum {lo_b} (above C_floor); "
+                    "using flat extrapolation at left edge.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._warned_below = True
+            if np.any(valid & (flat > hi_b)) and not self._warned_above:
+                warnings.warn(
+                    f"ReconstructionLUT(n={self.n}): C above table maximum {hi_b}; "
+                    "using flat extrapolation at right edge.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._warned_above = True
+        else:
+            out_flat[:] = np.interp(
+                flat,
+                self.C_table,
+                self.psi_table,
+                left=float(self.psi_table[0]),
+                right=float(self.psi_table[-1]),
+            )
+            lo_b = float(self.C_table[0])
+            hi_b = float(self.C_table[-1])
+            if np.any(flat < lo_b) and not self._warned_below:
+                warnings.warn(
+                    f"ReconstructionLUT(n={self.n}): C below table minimum {lo_b}; "
+                    "using flat extrapolation at left edge.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._warned_below = True
+            if np.any(flat > hi_b) and not self._warned_above:
+                warnings.warn(
+                    f"ReconstructionLUT(n={self.n}): C above table maximum {hi_b}; "
+                    "using flat extrapolation at right edge.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._warned_above = True
+
+        out = out_flat.reshape(C_arr.shape).astype(float)
+        if scalar_input:
+            return out.reshape(())
+        return out
