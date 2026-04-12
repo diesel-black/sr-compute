@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from experiments.polynomial_sweep.config import QUICK
-from experiments.polynomial_sweep.run import run_single, run_sweep
+from experiments.polynomial_sweep.config import INTEGRATION, INTEGRATION_OVERRIDES_BY_N, QUICK
+from experiments.polynomial_sweep.run import build_params, run_single, run_sweep
 
 
 def _expected_keys() -> set[str]:
@@ -28,6 +28,17 @@ def _expected_keys() -> set[str]:
 
 def _field_keys() -> set[str]:
     return {"C_final", "g_final", "psi_bar_final", "x"}
+
+
+def test_sweep_merge_allows_per_n_integrator_overrides():
+    """CLI must not pass ``{**INTEGRATION}`` last; that pattern overwrote Radau for stiff n."""
+    integ_ok = {**INTEGRATION, **INTEGRATION_OVERRIDES_BY_N.get(5, {}), **{}}
+    p_ok = build_params(5, grid=QUICK, integration=integ_ok)
+    assert p_ok["method"] == "Radau"
+
+    integ_broken = {**INTEGRATION, **INTEGRATION_OVERRIDES_BY_N.get(5, {}), **dict(INTEGRATION)}
+    p_bad = build_params(5, grid=QUICK, integration=integ_broken)
+    assert p_bad["method"] == "RK45"
 
 
 def test_run_single_quick_n3():

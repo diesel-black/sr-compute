@@ -281,15 +281,6 @@ def run_single(
         call_kwargs["atol"] = float(integ["atol"])
 
     if max_wallclock is not None and max_wallclock > 0:
-        exec_mode = f"subprocess (cap {max_wallclock:g}s, expect a second Python PID)"
-    else:
-        exec_mode = "in-process (this interpreter runs SciPy)"
-    print(
-        f"[n={n}] IVP: method={method}, t_span={t_span}, max_step={max_step}, {exec_mode}",
-        flush=True,
-    )
-
-    if max_wallclock is not None and max_wallclock > 0:
         sim = _run_simulation_wallclock(float(max_wallclock), params, call_kwargs)
     else:
         sim = run_simulation(params, **call_kwargs)
@@ -345,6 +336,9 @@ def run_sweep(
 
     Pass ``max_wallclock=None`` (default) to run in-process. The CLI uses
     ``SWEEP_DEFAULT_WALLCLOCK_SEC`` when set, or ``--wallclock SEC``; ``--quick`` forces in-process.
+
+    The ``integration`` mapping should list only *overrides* (e.g. ``t_span``, ``max_step``), not a
+    full copy of ``INTEGRATION``, or per-``n`` defaults from ``INTEGRATION_OVERRIDES_BY_N`` are lost.
     """
     ns = list(N_VALUES if n_values is None else n_values)
     out_dir = Path(results_dir or RESULTS_DIR)
@@ -445,10 +439,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     grid_cfg = QUICK if args.quick else GRID
-    integration_cfg = {**INTEGRATION}
+    # Do not pass ``{**INTEGRATION}`` here: ``run_single`` merges ``(integration or {})`` *last*, so a
+    # full INTEGRATION dict would overwrite ``INTEGRATION_OVERRIDES_BY_N`` (e.g. Radau for n>=4).
     if args.quick:
-        integration_cfg["t_span"] = QUICK["t_span"]
-        integration_cfg["max_step"] = QUICK["max_step"]
+        integration_cfg: Optional[dict[str, Any]] = {
+            "t_span": QUICK["t_span"],
+            "max_step": QUICK["max_step"],
+        }
+    else:
+        integration_cfg = None
 
     if args.quick:
         wallclock_sec: Optional[float] = None
