@@ -1,0 +1,124 @@
+---
+alwaysApply: true
+---
+
+## Repository Description
+
+This is the computational implementation arm of Semantic Relativity (SR), a geometric field theory for observer-dependent meaning. The theory is formalized in a paper and its Appendix A. This repository implements the toy models from Appendix A as numerical simulations, starting with the 1+1 model (one spatial dimension, one time parameter) and eventually extending.
+
+The repo is NOT a generic PDE solver. Every function implements a specific mathematical object from the SR framework. Code should be written as scientific instrumentation: precise, documented, and traceable to the theory.
+
+## Current Task
+
+Thread 7 from the Cubic Aperture research program: a parameter sweep across polynomial order n = 2, 3, 4, 5, 6 in the 1+1 model, measuring four quantities simultaneously to test provisional structural results R25-R28. See `experiments/polynomial-sweep/` for the experiment specification.
+
+## The Theory in Brief
+
+SR defines a coherence field C(x,t) on a semantic manifold with metric g(x,t). Three coupled field equations govern the dynamics:
+
+- **CFE (Coherence Field Equation)**: How coherence evolves given the geometry
+- **RFE (Recursive Field Equation)**: How coherence sources curvature (trivial in 1D: R ≡ 0)
+- **MFE (Metric Field Equation)**: How the metric evolves given coherence structure
+
+The coherence field C is obtained from a fundamental field ψ through a coarse-graining functional F: C = ψ̄ + γₙψ̄ⁿ, where ψ̄ is the Gaussian-smoothed field. The polynomial order n is the central parameter of this experiment. The default/canonical case is n=3 (cubic), which Appendix A develops in full detail.
+
+## Seven Free Parameters
+
+| Parameter | Symbol  | Role                                    |
+|-----------|---------|-----------------------------------------|
+| sigma     | σ       | Resolution scale of Gaussian smearing   |
+| gamma     | γ (γₙ)  | Nonlinearity coefficient in F           |
+| mu_sq     | μ²      | Attractor binding strength              |
+| alpha_phi | α_Φ     | Autopoietic potential coupling          |
+| lambda_b  | λ_B     | Brake coupling strength                 |
+| eta_g     | η_g     | MFE constraint-contraction coupling     |
+| xi_g      | ξ_g     | MFE reflexive-density expansion coupling|
+
+All derived quantities (coupling tensor, brake variation, stress-energy, attractor stability, semantic mass) are explicit functions of C, g, and these seven parameters.
+
+## Symbol Conventions (IMPORTANT)
+
+This repo follows the Appendix A symbol space, NOT the original toy model documents. Key remappings from old toy model symbols:
+
+| This Repo (Appendix A)  | Old Toy Model | Object                         |
+|-------------------------|---------------|--------------------------------|
+| G_sigma, gaussian_kernel| K_sigma       | Gaussian smearing kernel       |
+| gamma                   | alpha         | Cubic nonlinearity coefficient |
+| zeta                    | beta          | Brake variation prefactor      |
+
+Unchanged symbols: κ (kappa), σ (sigma), μ² (mu_sq), α_Φ (alpha_phi), λ_B (lambda_b), η_g (eta_g), ξ_g (xi_g), Γ₀ (Gamma_0).
+
+## Repo Structure
+
+sr-compute/
+├── shared/                # Math primitives parameterized by polynomial order n
+│   ├── __init__.py
+│   ├── potentials.py      # V(C), Φ(C), V_eff, A(C), full effective potential V(ψ̄)
+│   ├── reconstruction.py  # F_n(ψ̄), its derivative, numerical inverse h(C)
+│   ├── brake.py           # Brake variation δB/δC, saturation, ζₙ prefactor
+│   ├── coupling.py        # Gaussian kernel, coupling tensor K(p,q) as matrix, κₙ
+│   ├── metrics.py         # The four measurement functions for the sweep
+│   └── visualization.py   # Plotting utilities
+├── models/
+│   ├── dim_1plus1/        # 1+1 model (current focus)
+│   │   ├── __init__.py
+│   │   ├── cfe.py         # CFE right-hand side and time integration
+│   │   ├── mfe.py         # MFE right-hand side and coupled C-g evolution
+│   │   └── coupling.py    # 1+1-specific coupling tensor construction
+│   ├── dim_2plus1/        # Future: 2+1 model (Gaussian curvature, scalar RFE)
+│   └── dim_3plus1/        # Future: 3+1 model (full tensorial RFE)
+├── experiments/
+│   └── polynomial-sweep/  # Thread 7 experiment
+│       ├── config.yaml    # Parameter ranges, grid specs, sweep values
+│       ├── run.py         # Execute the sweep
+│       ├── analyze.py     # Post-processing and comparison to predictions
+│       └── results/       # Output data and figures
+├── notebooks/             # Jupyter notebooks for exploration
+├── tests/                 # Unit tests for shared math
+└── README.md
+
+The models/dim_2plus1/ and models/dim_3plus1/ directories are scaffolding for future work. They are intentionally empty. Do not populate them unless explicitly asked.
+
+## Code Conventions
+
+- **Python 3.10+** with NumPy, SciPy, Matplotlib. No heavy frameworks.
+- **Every function must have a docstring** that includes the mathematical expression it implements, using plain-text math notation (e.g., `C = psi_bar + gamma * psi_bar**n`).
+- **All math primitives in shared/ must be parameterized by polynomial order `n`.** The same function serves n=2 through n=6. Do not write separate cubic/quartic/quintic implementations.
+- **Use descriptive variable names** that match the theory: `psi_bar`, `C`, `g_metric`, `gamma_n`, `sigma`, `mu_sq`, `alpha_phi`, `lambda_b`, `eta_g`, `xi_g`.
+- **No magic numbers.** All parameters flow from config or function arguments.
+- **Type hints** on all function signatures.
+- **NumPy arrays** for spatial fields. A field on the 1D grid is `np.ndarray` of shape `(N,)`.
+- Prefer `scipy.optimize.brentq` for root-finding (reconstruction inverse).
+- Prefer `scipy.linalg.svdvals` for singular value decomposition (spectral ratio).
+- Prefer `scipy.signal.argrelmin` for finding local minima (metastable state count).
+
+## Key Mathematical Objects (Quick Reference)
+
+### Coarse-graining (general n)
+  C = ψ̄ + γₙ ψ̄ⁿ
+  dC/dψ̄ = 1 + n γₙ ψ̄^(n-1)
+
+### Coupling tensor (1D, general n)
+  K(p,q) = κₙ ψ̄(p)^(n-2) G_σ(p-q)
+  κₙ depends on n and σ; at n=3: κ = 6γ / √(2πσ²)
+
+### Brake variation (general n)
+  δB/δC(r) = ζₙ ψ̄(r)^(2n-5) / (1 + n γₙ ψ̄(r)^(n-1))
+  Saturation at |ψ̄| = 1/√(3γ) (cubic); generalize for other n.
+
+### Effective potential
+  V(C) = (μ²/2) C²
+  Φ(C) = α_Φ C⁴
+  V_eff(C) = V(C) - Φ(C) = (μ²/2)C² - α_Φ C⁴
+  Equilibria at C* = ±μ / (2√α_Φ)
+
+### Attractor stability
+  A(C) = (12 α_Φ C² - μ²) / (2μ²)
+
+### 1+1 CFE
+  ∂ₜC = (1/g)[∂ₓₓC - (∂ₓg)(∂ₓC)/(2g)] + μ²C - 4α_Φ C³ + λ_B ζ h(C) g / (1 + 3γ h(C)²)
+  (The brake term shown is for n=3; generalize using the general-n brake variation.)
+
+### 1+1 MFE
+  ∂ₜg = -2η_g A(C)(∂ₓC)² + (6ξ_g γ)/(πσ²) h(C) g
+  (No Ricci flow in 1D since R ≡ 0.)
