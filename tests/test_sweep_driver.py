@@ -78,6 +78,7 @@ def test_run_sweep_quick():
         grid=QUICK,
         integration=QUICK,
         save=False,
+        max_wallclock=None,
     )
     assert len(results) == 2
     c3 = results[0]["measurements"]["metastable_count"]
@@ -95,6 +96,7 @@ def test_save_and_load():
             integration=QUICK,
             save=True,
             results_dir=tmp,
+            max_wallclock=None,
         )
         d = Path(tmp)
         assert (d / "n3.npz").is_file()

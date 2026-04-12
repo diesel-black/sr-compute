@@ -34,13 +34,25 @@ INTEGRATION = {
     "seed": 42,  # Reproducible initial conditions
 }
 
+# Higher polynomial orders stiffen the coupled IVP; implicit Radau reduces step-collapse stalls.
+# Merged in run_single as: INTEGRATION -> overrides[n] -> caller integration (e.g. QUICK wins last).
+INTEGRATION_OVERRIDES_BY_N = {
+    4: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
+    5: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
+    6: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
+}
+
 # ReconstructionLUT for h(C) during coupled IVP (see models.dim_1plus1.run_simulation)
 # Wide C span avoids flat extrapolation when |C| grows before metric events; 10k samples is cheap at init.
 RECONSTRUCTION_LUT = {
-    "C_min": -10.0,
-    "C_max": 10.0,
+    "C_min": -15.0,
+    "C_max": 15.0,
     "n_samples": 10_000,
 }
+
+# Default wall-clock cap per n when running ``python -m experiments.polynomial_sweep.run`` (subprocess).
+# ``run_sweep(..., max_wallclock=None)`` and ``--quick`` disable. Use ``--wallclock 0`` for unlimited.
+SWEEP_DEFAULT_WALLCLOCK_SEC = 900.0
 
 # Sampling range for metastable-state count in psi_bar space (matches tests/test_metrics.py)
 METASTABLE_PSI_RANGE = (-2.0, 2.0, 4001)

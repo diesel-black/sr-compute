@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any, Mapping, Union
 
 import numpy as np
@@ -16,7 +17,7 @@ Params = Union[Mapping[str, Any], dict[str, Any]]
 
 _LOG_G_FLOOR = np.log(1e-300)
 # Keep exp(log_g) finite in float64 (implicit solvers may probe huge intermediate log_g).
-_LOG_G_CAP = float(np.nextafter(np.log(np.finfo(np.float64).max), 0.0))
+_LOG_G_CAP = float(np.nextafter(np.log(sys.float_info.max), 0.0))
 
 
 def _centered_gradient(f: np.ndarray, dx: float) -> np.ndarray:
@@ -229,8 +230,8 @@ def run_simulation(
     rtol: float = 1e-8,
     atol: float = 1e-10,
     use_reconstruction_lut: bool = True,
-    lut_C_min: float = -10.0,
-    lut_C_max: float = 10.0,
+    lut_C_min: float = -15.0,
+    lut_C_max: float = 15.0,
     lut_n_samples: int = 10_000,
 ) -> dict[str, Any]:
     """Initial conditions, coupled integration, spatial grid, and final reconstructed \(\bar\psi = h(C)\).

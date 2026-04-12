@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import math
+import multiprocessing as mp
 import time
 import warnings
 from pathlib import Path
+from queue import Empty
 from typing import Any, Mapping, Optional
 
 import numpy as np
@@ -23,12 +25,14 @@ from experiments.polynomial_sweep.config import (
     BASELINE_PARAMS,
     GRID,
     INTEGRATION,
+    INTEGRATION_OVERRIDES_BY_N,
     METASTABLE_PSI_RANGE,
     NONLOCAL,
     N_VALUES,
     QUICK,
     RECONSTRUCTION_LUT,
     RESULTS_DIR,
+    SWEEP_DEFAULT_WALLCLOCK_SEC,
 )
 
 Params = dict[str, Any]
@@ -54,12 +58,91 @@ def build_params(
     params["method"] = str(integ["method"])
     params["max_step"] = float(integ["max_step"])
     params["seed"] = int(integ["seed"])
+    if "rtol" in integ:
+        params["rtol"] = float(integ["rtol"])
+    if "atol" in integ:
+        params["atol"] = float(integ["atol"])
     return params
+
+
+def _sweep_child_run_simulation(queue: mp.Queue, params: dict[str, Any], kwargs: dict[str, Any]) -> None:
+    """Spawn target: run ``run_simulation`` and return result or traceback via ``queue``."""
+    try:
+        from models.dim_1plus1.mfe import run_simulation as _rs
+
+        out = _rs(params, **kwargs)
+        queue.put(("ok", out))
+    except Exception:
+        import traceback
+
+        queue.put(("err", traceback.format_exc()))
+
+
+def _wallclock_timeout_snapshot(params: Params) -> dict[str, Any]:
+    """Placeholder IVP output after subprocess termination (no partial SciPy state available)."""
+    n_grid = int(params["N"])
+    length = float(params["L"])
+    x = np.linspace(0.0, length, n_grid, endpoint=False, dtype=float)
+    nan_f = np.full(n_grid, np.nan, dtype=float)
+    return {
+        "t": np.array([], dtype=float),
+        "C_history": np.zeros((0, n_grid), dtype=float),
+        "g_history": np.zeros((0, n_grid), dtype=float),
+        "success": False,
+        "message": "Wallclock timeout (subprocess terminated)",
+        "t_events": [],
+        "C_final": nan_f.copy(),
+        "g_final": nan_f.copy(),
+        "psi_bar_final": nan_f.copy(),
+        "x": x,
+    }
+
+
+def _run_simulation_wallclock(
+    max_wallclock: float,
+    params: Params,
+    call_kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    """Run ``run_simulation`` in a spawn child; kill after ``max_wallclock`` seconds if still alive."""
+    ctx = mp.get_context("spawn")
+    q: mp.Queue = ctx.Queue()
+    proc = ctx.Process(target=_sweep_child_run_simulation, args=(q, params, call_kwargs))
+    proc.start()
+    proc.join(timeout=float(max_wallclock))
+    if proc.is_alive():
+        proc.terminate()
+        proc.join(timeout=5.0)
+        if proc.is_alive():
+            proc.kill()
+            proc.join(timeout=5.0)
+        return _wallclock_timeout_snapshot(params)
+
+    try:
+        kind, payload = q.get(timeout=2.0)
+    except Empty:
+        return {
+            **_wallclock_timeout_snapshot(params),
+            "message": "Subprocess finished without returning a result (queue empty).",
+        }
+
+    if kind == "err":
+        warnings.warn(
+            f"run_simulation subprocess failed:\n{payload}",
+            UserWarning,
+            stacklevel=2,
+        )
+        return {
+            **_wallclock_timeout_snapshot(params),
+            "message": f"Subprocess error: {payload[:500]}",
+        }
+    return payload
 
 
 def _infer_hit_blowup(g_final: np.ndarray) -> bool:
     """True if final metric suggests the MFE ceiling event (g_max crossing ~1e6)."""
     g_max = float(np.max(g_final))
+    if not math.isfinite(g_max):
+        return False
     return g_max >= 0.99e6
 
 
@@ -164,9 +247,18 @@ def run_single(
     integration: Optional[Mapping[str, Any]] = None,
     seed: Optional[int] = None,
     reconstruction_lut: Optional[Mapping[str, Any]] = None,
+    max_wallclock: Optional[float] = None,
 ) -> dict[str, Any]:
-    """One simulation at polynomial order ``n`` and four measurements on the final fields."""
-    integ = {**INTEGRATION, **(integration or {})}
+    """One simulation at polynomial order ``n`` and four measurements on the final fields.
+
+    ``max_wallclock``: if positive, run ``run_simulation`` in a spawn subprocess and terminate
+    after that many seconds (no partial SciPy state; fields become NaN on timeout).
+    """
+    integ = {
+        **INTEGRATION,
+        **INTEGRATION_OVERRIDES_BY_N.get(int(n), {}),
+        **(integration or {}),
+    }
     lut_cfg = {**RECONSTRUCTION_LUT, **(reconstruction_lut or {})}
     params = build_params(n, grid=grid, integration=integ)
     seed_eff = int(seed) if seed is not None else int(params["seed"])
@@ -174,16 +266,24 @@ def run_single(
     method = str(params["method"])
     max_step = float(params["max_step"])
 
-    sim = run_simulation(
-        params,
-        t_span=t_span,
-        seed=seed_eff,
-        method=method,
-        max_step=max_step,
-        lut_C_min=float(lut_cfg["C_min"]),
-        lut_C_max=float(lut_cfg["C_max"]),
-        lut_n_samples=int(lut_cfg["n_samples"]),
-    )
+    call_kwargs: dict[str, Any] = {
+        "t_span": t_span,
+        "seed": seed_eff,
+        "method": method,
+        "max_step": max_step,
+        "lut_C_min": float(lut_cfg["C_min"]),
+        "lut_C_max": float(lut_cfg["C_max"]),
+        "lut_n_samples": int(lut_cfg["n_samples"]),
+    }
+    if "rtol" in integ:
+        call_kwargs["rtol"] = float(integ["rtol"])
+    if "atol" in integ:
+        call_kwargs["atol"] = float(integ["atol"])
+
+    if max_wallclock is not None and max_wallclock > 0:
+        sim = _run_simulation_wallclock(float(max_wallclock), params, call_kwargs)
+    else:
+        sim = run_simulation(params, **call_kwargs)
 
     success = bool(sim["success"])
     message = str(sim["message"])
@@ -230,8 +330,13 @@ def run_sweep(
     save: bool = True,
     results_dir: Optional[str] = None,
     reconstruction_lut: Optional[Mapping[str, Any]] = None,
+    max_wallclock: Optional[float] = None,
 ) -> list[dict[str, Any]]:
-    """Run ``run_single`` for each ``n`` in ``n_values``; optionally persist npz + json."""
+    """Run ``run_single`` for each ``n`` in ``n_values``; optionally persist npz + json.
+
+    Pass ``max_wallclock=None`` (default) to run in-process. The CLI sets this from
+    ``SWEEP_DEFAULT_WALLCLOCK_SEC`` unless ``--quick`` or ``--wallclock 0``.
+    """
     ns = list(N_VALUES if n_values is None else n_values)
     out_dir = Path(results_dir or RESULTS_DIR)
     t0 = time.perf_counter()
@@ -245,6 +350,7 @@ def run_sweep(
             integration=integration,
             seed=seed,
             reconstruction_lut=reconstruction_lut,
+            max_wallclock=max_wallclock,
         )
         results.append(row)
         mc = row["measurements"]["metastable_count"]
@@ -253,6 +359,12 @@ def run_sweep(
             f"metastable_count={mc}",
             flush=True,
         )
+        if "Wallclock timeout" in str(row["message"]):
+            print(
+                f"[n={n}] Hint: integrator hit wallclock; use --wallclock 0 to retry this n, "
+                "or check INTEGRATION_OVERRIDES_BY_N / Radau settings.",
+                flush=True,
+            )
 
     elapsed = time.perf_counter() - t0
     print(f"Sweep finished in {elapsed:.1f} s ({elapsed / 60.0:.2f} min).", flush=True)
@@ -310,6 +422,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Don't save results to disk",
     )
+    parser.add_argument(
+        "--wallclock",
+        type=float,
+        default=None,
+        metavar="SEC",
+        help=(
+            "Max wall seconds per n (spawn subprocess; 0 = unlimited). "
+            f"Default {SWEEP_DEFAULT_WALLCLOCK_SEC} when omitted; disabled with --quick."
+        ),
+    )
     args = parser.parse_args()
 
     grid_cfg = QUICK if args.quick else GRID
@@ -318,9 +440,17 @@ if __name__ == "__main__":
         integration_cfg["t_span"] = QUICK["t_span"]
         integration_cfg["max_step"] = QUICK["max_step"]
 
+    if args.quick:
+        wallclock_sec: Optional[float] = None
+    elif args.wallclock is not None:
+        wallclock_sec = None if args.wallclock <= 0 else float(args.wallclock)
+    else:
+        wallclock_sec = float(SWEEP_DEFAULT_WALLCLOCK_SEC)
+
     run_sweep(
         n_values=args.n or N_VALUES,
         grid={"N": grid_cfg["N"], "L": grid_cfg["L"]},
         integration=integration_cfg,
         save=not args.no_save,
+        max_wallclock=wallclock_sec,
     )
