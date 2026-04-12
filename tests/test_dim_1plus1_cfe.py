@@ -1,18 +1,12 @@
-"""Unit tests for `models.1plus1.cfe` (Laplace-Beltrami and CFE RHS / integration)."""
+"""Unit tests for `models.dim_1plus1.cfe` (Laplace-Beltrami and CFE RHS / integration)."""
 
 from __future__ import annotations
-
-from importlib import import_module
 
 import numpy as np
 import pytest
 
+from models.dim_1plus1.cfe import cfe_rhs, integrate_cfe, laplace_beltrami_1d
 from shared.potentials import equilibrium_C_star
-
-_cfe = import_module("models.1plus1.cfe")
-laplace_beltrami_1d = _cfe.laplace_beltrami_1d
-cfe_rhs = _cfe.cfe_rhs
-integrate_cfe = _cfe.integrate_cfe
 
 
 def test_laplace_beltrami_flat_metric():

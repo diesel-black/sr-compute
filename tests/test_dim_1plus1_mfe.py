@@ -1,12 +1,11 @@
-"""Unit tests for `models.1plus1.mfe` and coupled evolution."""
+"""Unit tests for `models.dim_1plus1.mfe` and coupled evolution."""
 
 from __future__ import annotations
-
-from importlib import import_module
 
 import numpy as np
 import pytest
 
+import models.dim_1plus1.mfe as _mfe
 from shared.brake import zeta_cubic
 from shared.metrics import (
     count_metastable_states,
@@ -17,18 +16,16 @@ from shared.metrics import (
 from shared.potentials import attractor_stability, equilibrium_C_star
 from shared.reconstruction import reconstruct
 
-
-def _periodic_d_dx(f: np.ndarray, dx: float) -> np.ndarray:
-    """Match `models.1plus1.mfe` / CFE centered gradient on a periodic grid."""
-    return (np.roll(f, -1) - np.roll(f, 1)) / (2.0 * dx)
-
-_mfe = import_module("models.1plus1.mfe")
 _LOG_G_CAP = float(_mfe._LOG_G_CAP)
 mfe_rhs = _mfe.mfe_rhs
-coupled_rhs = _mfe.coupled_rhs
 initial_conditions = _mfe.initial_conditions
 integrate_coupled = _mfe.integrate_coupled
 run_simulation = _mfe.run_simulation
+
+
+def _periodic_d_dx(f: np.ndarray, dx: float) -> np.ndarray:
+    """Match `models.dim_1plus1.mfe` / CFE centered gradient on a periodic grid."""
+    return (np.roll(f, -1) - np.roll(f, 1)) / (2.0 * dx)
 
 
 def _baseline_params(N: int = 64, L: float = 1.0) -> dict:
