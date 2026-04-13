@@ -35,7 +35,7 @@ Solver-parity controls (`parity_experiment.py`) support treating these regime di
 **Open questions:**
 
 - Why does the brake's lack of a saturation maximum at n ≥ 4 relate to avoidance of the metric terminal event? The connection between R4 (brake saturation at |ψ̄| = 1/√(3γ)) and S A.1.8 needs analytical investigation.
-- Parameter stress-testing: do the qualitative findings hold under varied μ², γ, σ?
+- Parameter stress-testing: do the qualitative findings hold under varied μ², γ, σ? (Empirical check: `robustness_experiment.py` and `results/robustness_report.txt`.)
 - Can n = 5, n = 6 spatial homogeneity be broken by different initial conditions or larger amplitude perturbations?
 
 ## Theory in brief
@@ -81,15 +81,18 @@ sr-compute/
 │       ├── config.py            # Baseline parameters, grid specs, per-n solver overrides
 │       ├── run.py               # Sweep driver (--quick, --n, --no-save, optional --wallclock)
 │       ├── analyze.py           # Reads summary + parity JSON; writes analysis.txt
+│       ├── outcome_utils.py     # IVP outcome labels (completed / terminal / timeout) for reports
 │       ├── parity_experiment.py # Solver parity runs A-D; writes results/parity/
 │       ├── snapshot_experiment.py  # Intermediate-time snapshots for n=4,5,6
-│       └── results/             # analysis.txt, snapshot_report.txt, parity/; see .gitignore
-├── tests/                       # pytest suite (62 tests)
+│       ├── robustness_experiment.py  # Single-parameter stress test, n=3,4,5
+│       ├── ensemble_experiment.py   # Multi-seed n=4 + n=3 control; optional wallclock per run
+│       └── results/             # analysis.txt, reports, parity/; see .gitignore
+├── tests/                       # pytest suite (65 tests)
 ├── pytest.ini                   # pythonpath = .
 └── LICENSE
 ```
 
-**Implemented:** `shared/` (including `ReconstructionLUT`), `models/dim_1plus1/` (CFE, MFE, coupled driver), `experiments/polynomial_sweep/` (config, sweep, analysis, parity, snapshot), and the pytest suite above.
+**Implemented:** `shared/` (including `ReconstructionLUT`), `models/dim_1plus1/` (CFE, MFE, coupled driver), `experiments/polynomial_sweep/` (config, sweep, analysis, parity, snapshot, robustness, ensemble, shared `outcome_utils`), and the pytest suite above.
 
 **Still to build:** real contents for `shared/visualization.py`, implementations under `models/dim_2plus1/` and `models/dim_3plus1/`, and optional split of 1+1-specific coupling helpers into `models/dim_1plus1/coupling.py`.
 
@@ -140,7 +143,7 @@ From the repository root:
 pytest tests/ -v
 ```
 
-`pytest.ini` sets `pythonpath = .` so imports resolve without extra flags. All 62 tests should pass. If an unrelated third-party `pytest` plugin breaks collection on your machine, run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
+`pytest.ini` sets `pythonpath = .` so imports resolve without extra flags. All 65 tests should pass. If an unrelated third-party `pytest` plugin breaks collection on your machine, run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
 
 Notable checks:
 
@@ -148,8 +151,10 @@ Notable checks:
 - `ReconstructionLUT` matches `brentq` within tolerance on random C samples.
 - At n=3, numerical dB/dC matches the analytical local formula (discrete Hilbert-Schmidt normalization is documented in `shared/brake.py`).
 - Metastable maxima count: 2 at n=3 (cusp), 3 at n=4 (swallowtail, brake-free landscape in tests where noted).
-- Sweep driver end-to-end validation on quick settings.
-- Snapshot experiment output shape and measurement completeness (quick mode).
+- Sweep driver end-to-end validation on quick settings (`test_sweep_driver.py`): `run_single` / `run_sweep` / save-load round-trip; saved `n*_measurements.json` includes an `outcome` field (`completed`, `terminal`, or `timeout`).
+- Snapshot experiment output shape and measurement completeness (quick mode, `test_snapshot_experiment.py`).
+- Robustness experiment (`test_robustness_experiment.py`): quick mode runs baseline plus two perturbations for n=3,4,5; all table columns finite; row keys use `outcome` (not raw SciPy `success`).
+- Ensemble experiment (`test_ensemble_experiment.py`): quick mode covers all seeds for n=4 and n=3; report contains usable-run statistics and seed-diversity lines; n=3 control rows satisfy κ≈1; optional Unix-only test for immediate wallclock timeout rows (NaN measurements, `outcome=timeout`).
 
 ## Running experiments
 
@@ -184,6 +189,20 @@ python -m experiments.polynomial_sweep.snapshot_experiment
 ```
 
 Use `snapshot_experiment --quick` for a fast smoke test (N=32).
+
+Parameter robustness (baseline plus 12 single-parameter perturbations, n=3,4,5; writes `results/robustness_report.txt`):
+
+```bash
+python -m experiments.polynomial_sweep.robustness_experiment
+python -m experiments.polynomial_sweep.robustness_experiment --quick
+```
+
+Multi-seed ensemble at n=4 with n=3 control (writes `results/ensemble_report.txt`; full mode uses per-run wallclock caps, suppresses known `ReconstructionLUT` warnings in the CLI entrypoint only):
+
+```bash
+python -m experiments.polynomial_sweep.ensemble_experiment
+python -m experiments.polynomial_sweep.ensemble_experiment --quick
+```
 
 ## License
 
