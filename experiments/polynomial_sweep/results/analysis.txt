@@ -1,5 +1,5 @@
 Thread 7 polynomial sweep: analysis report
-Run timestamp: 2026-04-13 00:37:00 UTC
+Run timestamp: 2026-04-13 07:10:29 UTC
 ============================================================
 
 1. Predicted vs observed (main sweep, summary.json)
@@ -21,11 +21,11 @@ growth eta2/eta1       |              | 1            | 1.197        | 1         
 Sweep integration metadata (from n*_measurements.json when present):
   Display uses the same rounding policy as the parity table (6 significant figures
   for t_final). Full-precision values remain in summary.json and n*_measurements.json.
-  n=2: Radau, t_final=0.00352532, success=False
-  n=3: RK45, t_final=8.92085, success=True
-  n=4: Radau, t_final=8.37912, success=False
-  n=5: Radau, t_final=30, success=True
-  n=6: Radau, t_final=30, success=True
+  n=2: Radau, t_final=0.00352532, outcome=terminal
+  n=3: RK45, t_final=8.92085, outcome=terminal
+  n=4: Radau, t_final=8.37912, outcome=terminal
+  n=5: Radau, t_final=30, outcome=completed
+  n=6: Radau, t_final=30, outcome=completed
 
 Honest confound (methodological): final-time and solver differ by n in the archived sweep.
   Field-valued metrics (kappa, spectral ratio, eta) are not comparable across n unless
@@ -35,12 +35,12 @@ Honest confound (methodological): final-time and solver differ by n in the archi
 
 2. Parity experiment (results/parity/*.json)
 
-Run   | Label        | solver   | t_final      | success | kappa      | spectral   | eta@1     
------------------------------------------------------------------------------------------------
-A     | n=3 Radau    | Radau    | 8.92085      | True    | 1          | 0.1817     | 9         
-B     | n=3 RK45     | RK45     | 8.92085      | True    | 1          | 0.1817     | 9         
-C     | n=5 RK45     | RK45     | 0            | False   |            |            |           
-D     | n=4 RK45     | RK45     | 8.37913      | False   | 3.983      | 0.5188     | 73.1      
+Run   | Label        | solver   | t_final      | outcome   | kappa      | spectral   | eta@1     
+-------------------------------------------------------------------------------------------------
+A     | n=3 Radau    | Radau    | 8.92085      | terminal  | 1          | 0.1817     | 9         
+B     | n=3 RK45     | RK45     | 8.92085      | terminal  | 1          | 0.1817     | 9         
+C     | n=5 RK45     | RK45     | 0            | timeout   |            |            |           
+D     | n=4 RK45     | RK45     | 8.37913      | terminal  | 3.983      | 0.5188     | 73.1      
 
 Interpretation template:
   If n=3 Radau at t=30 shows rich structure (kappa and spectral away from trivial

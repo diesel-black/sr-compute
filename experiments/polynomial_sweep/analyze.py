@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Optional, TextIO
 
 from experiments.polynomial_sweep.config import RESULTS_DIR
+from experiments.polynomial_sweep.outcome_utils import outcome_from_integrator
 
 # ``t_final`` uses this everywhere in the report (parity table and sweep metadata) for one instrument.
 _T_FINAL_SIGFIG = 6
@@ -72,6 +73,46 @@ def _growth_first(nonlocal_growth: Any) -> Optional[float]:
         return None
     v = float(gr[0])
     return v if math.isfinite(v) else None
+
+
+def _outcome_from_sidecar(data: dict[str, Any]) -> str:
+    """Read ``outcome`` from saved JSON, or derive from legacy ``success`` + ``t_span``."""
+    ex = data.get("outcome")
+    if isinstance(ex, str) and ex in ("completed", "terminal", "timeout"):
+        return ex
+    msg = str(data.get("message", ""))
+    if "Wallclock timeout" in msg:
+        return "timeout"
+    succ = data.get("success")
+    t_final = data.get("t_final")
+    params = data.get("params") or {}
+    tsp = params.get("t_span")
+    if succ is None or t_final is None or not isinstance(tsp, (list, tuple)) or len(tsp) < 2:
+        return "terminal"
+    try:
+        return outcome_from_integrator(bool(succ), float(t_final), float(tsp[1]))
+    except (TypeError, ValueError):
+        return "terminal"
+
+
+def _outcome_for_parity_row(r: dict[str, Any]) -> str:
+    """Parity JSON may store ``outcome`` or legacy ``success``."""
+    ex = r.get("outcome")
+    if isinstance(ex, str) and ex in ("completed", "terminal", "timeout"):
+        return ex
+    msg = str(r.get("message", ""))
+    if "Wallclock timeout" in msg:
+        return "timeout"
+    succ = r.get("success")
+    t_final = r.get("t_final")
+    params = r.get("params") or {}
+    tsp = params.get("t_span")
+    if succ is None or t_final is None or not isinstance(tsp, (list, tuple)) or len(tsp) < 2:
+        return "terminal"
+    try:
+        return outcome_from_integrator(bool(succ), float(t_final), float(tsp[1]))
+    except (TypeError, ValueError):
+        return "terminal"
 
 
 def _write_predicted_observed(
@@ -161,13 +202,13 @@ def _collect_per_n_meta(results_dir: Path) -> dict[str, dict[str, Any]]:
         params = data.get("params") or {}
         method = params.get("method", "?")
         t_final = data.get("t_final")
-        succ = data.get("success")
+        oc = _outcome_from_sidecar(data)
         tf_show = _fmt_t_final(t_final)
         out[nk] = {
             "method": method,
             "t_final": t_final,
-            "success": succ,
-            "short": f" {method}, t_final={tf_show}, success={succ}",
+            "outcome": oc,
+            "short": f" {method}, t_final={tf_show}, outcome={oc}",
         }
     return out
 
@@ -197,18 +238,22 @@ def _write_parity_section(parity_dir: Path, out: TextIO) -> None:
         rows.append(_load_json(p))
     rows.sort(key=lambda r: r.get("parity_run", ""))
 
-    hdr = f"{'Run':<5} | {'Label':<12} | {'solver':<8} | {'t_final':<12} | {'success':<7} | {'kappa':<10} | {'spectral':<10} | {'eta@1':<10}"
+    hdr = (
+        f"{'Run':<5} | {'Label':<12} | {'solver':<8} | {'t_final':<12} | {'outcome':<9} | "
+        f"{'kappa':<10} | {'spectral':<10} | {'eta@1':<10}"
+    )
     lines.append(hdr)
     lines.append("-" * len(hdr))
     for r in rows:
         m = r.get("measurements") or {}
         ng = m.get("nonlocal_growth")
+        oc = _outcome_for_parity_row(r)
         lines.append(
             f"{str(r.get('parity_run','')):<5} | "
             f"{str(r.get('parity_label','')):<12} | "
             f"{str(r.get('solver','')):<8} | "
             f"{_fmt_t_final(r.get('t_final')):<12} | "
-            f"{str(r.get('success')):<7} | "
+            f"{oc:<9} | "
             f"{_fmt(m.get('condition_number'), 4):<10} | "
             f"{_fmt(m.get('spectral_ratio'), 4):<10} | "
             f"{_fmt(_first_eta(ng), 4):<10}"
