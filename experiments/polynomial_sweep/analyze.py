@@ -1,7 +1,9 @@
 """Thread 7 Phase 3 Part 2: aggregate sweep summary, parity JSON, and qualitative predictions.
 
 Reads ``results/summary.json``, optional ``results/parity/*.json``, prints a terminal report,
-and writes ``results/analysis.txt``. Run from repository root:
+and writes ``results/analysis.txt`` with a UTC generation timestamp in the header.
+Numeric columns use one consistent significant-figure policy; full floats stay in the JSON sources.
+Run from repository root:
 
     python -m experiments.polynomial_sweep.analyze
 """
@@ -11,10 +13,14 @@ from __future__ import annotations
 import json
 import math
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, TextIO
 
 from experiments.polynomial_sweep.config import RESULTS_DIR
+
+# ``t_final`` uses this everywhere in the report (parity table and sweep metadata) for one instrument.
+_T_FINAL_SIGFIG = 6
 
 
 def _repo_root() -> Path:
@@ -35,6 +41,17 @@ def _fmt(x: Any, prec: int = 4) -> str:
             return str(x)
         return f"{x:.{prec}g}"
     return str(x)
+
+
+def _fmt_t_final(raw: Any) -> str:
+    """String for ``t_final`` with the same significant figures as the parity table."""
+    if raw is None:
+        return ""
+    if isinstance(raw, bool):
+        return str(raw)
+    if isinstance(raw, (int, float)):
+        return _fmt(float(raw), _T_FINAL_SIGFIG)
+    return str(raw)
 
 
 def _first_eta(nonlocal_growth: Any) -> Optional[float]:
@@ -101,6 +118,12 @@ def _write_predicted_observed(
 
     lines.append("")
     lines.append("Sweep integration metadata (from n*_measurements.json when present):")
+    lines.extend(
+        [
+            "  Display uses the same rounding policy as the parity table (6 significant figures",
+            "  for t_final). Full-precision values remain in summary.json and n*_measurements.json.",
+        ]
+    )
     for nk in ("2", "3", "4", "5", "6"):
         meta = per_n_meta.get(nk)
         if meta:
@@ -139,11 +162,12 @@ def _collect_per_n_meta(results_dir: Path) -> dict[str, dict[str, Any]]:
         method = params.get("method", "?")
         t_final = data.get("t_final")
         succ = data.get("success")
+        tf_show = _fmt_t_final(t_final)
         out[nk] = {
             "method": method,
             "t_final": t_final,
             "success": succ,
-            "short": f" {method}, t_final={t_final}, success={succ}",
+            "short": f" {method}, t_final={tf_show}, success={succ}",
         }
     return out
 
@@ -155,12 +179,14 @@ def _write_parity_section(parity_dir: Path, out: TextIO) -> None:
     ]
     files = sorted(parity_dir.glob("parity_*.json"))
     if not files:
-        lines.append(
-            "No parity JSON files found. After running the parity driver, this section compares "
-            "n=3 Radau (full window) vs n=3 RK45 (metric event), and RK45 at n=4 and n=5 against "
-            "the Radau sweep baselines."
+        lines.extend(
+            [
+                "No parity JSON files found. After running the parity driver, this section",
+                "  compares n=3 Radau (full window) vs n=3 RK45 (metric event), and RK45 at n=4",
+                "  and n=5 against the Radau sweep baselines.",
+                "",
+            ]
         )
-        lines.append("")
         text = "\n".join(lines) + "\n"
         out.write(text)
         print(text, end="")
@@ -181,21 +207,24 @@ def _write_parity_section(parity_dir: Path, out: TextIO) -> None:
             f"{str(r.get('parity_run','')):<5} | "
             f"{str(r.get('parity_label','')):<12} | "
             f"{str(r.get('solver','')):<8} | "
-            f"{_fmt(r.get('t_final'), 6):<12} | "
+            f"{_fmt_t_final(r.get('t_final')):<12} | "
             f"{str(r.get('success')):<7} | "
             f"{_fmt(m.get('condition_number'), 4):<10} | "
             f"{_fmt(m.get('spectral_ratio'), 4):<10} | "
             f"{_fmt(_first_eta(ng), 4):<10}"
         )
     lines.append("")
-    lines.append(
-        "Interpretation template: if n=3 Radau at t=30 shows rich structure (kappa and spectral "
-        "away from trivial limits) while the sweep used RK45 and stopped near t=8.9, solver choice "
-        "and stopping time jointly explain part of the cross-n spread. If n=5 RK45 at failure time "
-        "still shows spatial contrast, flattening at t=30 under Radau is more plausibly numerical "
-        "damping than a forced supercubic relaxation."
+    lines.extend(
+        [
+            "Interpretation template:",
+            "  If n=3 Radau at t=30 shows rich structure (kappa and spectral away from trivial",
+            "  limits) while the sweep used RK45 and stopped near t=8.9, solver choice and stopping",
+            "  time jointly explain part of the cross-n spread.",
+            "  If n=5 RK45 at failure time still shows spatial contrast, flattening at t=30 under",
+            "  Radau is more plausibly numerical damping than a forced supercubic relaxation.",
+            "",
+        ]
     )
-    lines.append("")
     text = "\n".join(lines) + "\n"
     out.write(text)
     print(text, end="")
@@ -251,8 +280,14 @@ def run_analysis() -> Path:
     summary = _load_json(summary_path)
     per_n = _collect_per_n_meta(results_dir)
 
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     with out_path.open("w", encoding="utf-8") as out:
-        header = "Thread 7 polynomial sweep: analysis report\n" + "=" * 60 + "\n\n"
+        header = (
+            "Thread 7 polynomial sweep: analysis report\n"
+            f"Run timestamp: {ts}\n"
+            + "=" * 60
+            + "\n\n"
+        )
         out.write(header)
         print(header, end="")
         _write_predicted_observed(summary, per_n, out)

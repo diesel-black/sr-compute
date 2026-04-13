@@ -1,4 +1,5 @@
 Thread 7 polynomial sweep: analysis report
+Run timestamp: 2026-04-13 00:37:00 UTC
 ============================================================
 
 1. Predicted vs observed (main sweep, summary.json)
@@ -18,11 +19,13 @@ eta at f=1             |              | 9            | 65.98        | 332.3     
 growth eta2/eta1       |              | 1            | 1.197        | 1            | 1           
 
 Sweep integration metadata (from n*_measurements.json when present):
-  n=2: Radau, t_final=0.0035253239786742015, success=False
-  n=3: RK45, t_final=8.920849566003108, success=True
-  n=4: Radau, t_final=8.379124675460567, success=False
-  n=5: Radau, t_final=30.0, success=True
-  n=6: Radau, t_final=30.0, success=True
+  Display uses the same rounding policy as the parity table (6 significant figures
+  for t_final). Full-precision values remain in summary.json and n*_measurements.json.
+  n=2: Radau, t_final=0.00352532, success=False
+  n=3: RK45, t_final=8.92085, success=True
+  n=4: Radau, t_final=8.37912, success=False
+  n=5: Radau, t_final=30, success=True
+  n=6: Radau, t_final=30, success=True
 
 Honest confound (methodological): final-time and solver differ by n in the archived sweep.
   Field-valued metrics (kappa, spectral ratio, eta) are not comparable across n unless
@@ -32,7 +35,19 @@ Honest confound (methodological): final-time and solver differ by n in the archi
 
 2. Parity experiment (results/parity/*.json)
 
-No parity JSON files found. After running the parity driver, this section compares n=3 Radau (full window) vs n=3 RK45 (metric event), and RK45 at n=4 and n=5 against the Radau sweep baselines.
+Run   | Label        | solver   | t_final      | success | kappa      | spectral   | eta@1     
+-----------------------------------------------------------------------------------------------
+A     | n=3 Radau    | Radau    | 8.92085      | True    | 1          | 0.1817     | 9         
+B     | n=3 RK45     | RK45     | 8.92085      | True    | 1          | 0.1817     | 9         
+C     | n=5 RK45     | RK45     | 0            | False   |            |            |           
+D     | n=4 RK45     | RK45     | 8.37913      | False   | 3.983      | 0.5188     | 73.1      
+
+Interpretation template:
+  If n=3 Radau at t=30 shows rich structure (kappa and spectral away from trivial
+  limits) while the sweep used RK45 and stopped near t=8.9, solver choice and stopping
+  time jointly explain part of the cross-n spread.
+  If n=5 RK45 at failure time still shows spatial contrast, flattening at t=30 under
+  Radau is more plausibly numerical damping than a forced supercubic relaxation.
 
 3. Clean findings (hold regardless of which solver produced the snapshot, with caveats)
 
