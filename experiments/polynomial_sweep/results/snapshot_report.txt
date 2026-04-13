@@ -1,14 +1,14 @@
 Thread 7 snapshot experiment (intermediate-time fields)
-Run timestamp: 2026-04-13 00:20:42 UTC
+Run timestamp: 2026-04-13 07:06:07 UTC
 quick_mode: False
 baseline_params: {'mu_sq': 1.0, 'alpha_phi': 1.0, 'gamma': 1.0, 'sigma': 0.5, 'lambda_B': 0.5, 'eta_g': 1.0, 'xi_g': 0.1}
 polynomial_orders: [4, 5, 6]
 lab_target_times: [1.0, 2.0, 4.0, 8.0, 15.0, 30.0]
 
 Per-n integration outcome:
-  n=4: success=False, t_final=8.363939899833055, method=Radau, message='Required step size is less than spacing between numbers.'
-  n=5: success=True, t_final=30.0, method=Radau, message='The solver successfully reached the end of the integration interval.'
-  n=6: success=True, t_final=30.0, method=Radau, message='The solver successfully reached the end of the integration interval.'
+  n=4: outcome=terminal, t_final=8.363939899833055, method=Radau, message='Required step size is less than spacing between numbers.'
+  n=5: outcome=completed, t_final=30.0, method=Radau, message='The solver successfully reached the end of the integration interval.'
+  n=6: outcome=completed, t_final=30.0, method=Radau, message='The solver successfully reached the end of the integration interval.'
 
 Columns: meta = metastable_count (landscape-only, constant in n).
 n | t_tgt |  t_snap |        C_range |        g_range | meta |              kappa |           spec |         eta_f1 |         growth
