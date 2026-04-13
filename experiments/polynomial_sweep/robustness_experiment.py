@@ -33,6 +33,7 @@ from experiments.polynomial_sweep.config import (
     RECONSTRUCTION_LUT,
     RESULTS_DIR,
 )
+from experiments.polynomial_sweep.outcome_utils import outcome_from_integrator
 from models.dim_1plus1.mfe import run_simulation
 from shared.metrics import (
     count_metastable_states,
@@ -216,7 +217,7 @@ def run_one_case(
     sim = run_simulation(params, **sim_kwargs)
     t_arr = np.asarray(sim["t"], dtype=float)
     t_final = float(t_arr[-1]) if t_arr.size else float(t_span[0])
-    success = bool(sim["success"])
+    outcome = outcome_from_integrator(bool(sim["success"]), t_final, float(t_span[1]))
 
     C_final = np.asarray(sim["C_final"], dtype=float)
     c_range = float(np.max(C_final) - np.min(C_final)) if C_final.size else float("nan")
@@ -228,7 +229,7 @@ def run_one_case(
         "perturbation_label": str(perturbation_label),
         "n": int(n),
         "t_final": t_final,
-        "success": success,
+        "outcome": outcome,
         "C_range": c_range,
         "metastable_count": int(m_count),
         "kappa": kappa,
@@ -264,7 +265,7 @@ _TABLE_HEADERS = (
     "perturbation",
     "n",
     "t_final",
-    "success",
+    "outcome",
     "C_range",
     "meta",
     "kappa",
@@ -281,7 +282,7 @@ def _row_cells(r: dict[str, Any]) -> list[str]:
         str(r["perturbation_label"]),
         str(r["n"]),
         _pretty_float(float(r["t_final"])),
-        str(bool(r["success"])),
+        str(r["outcome"]),
         _pretty_float(float(r["C_range"])),
         meta_s,
         _pretty_float(float(r["kappa"])),
@@ -441,7 +442,7 @@ def run_robustness_experiment(
             rows.append(row)
             print(
                 f"[robustness] ({step_i}/{total_steps}) done   perturbation={label} n={n} "
-                f"success={row['success']} t_final={row['t_final']}",
+                f"outcome={row['outcome']} t_final={row['t_final']}",
                 flush=True,
             )
 

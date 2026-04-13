@@ -34,6 +34,7 @@ from experiments.polynomial_sweep.config import (
     RESULTS_DIR,
     SWEEP_DEFAULT_WALLCLOCK_SEC,
 )
+from experiments.polynomial_sweep.outcome_utils import outcome_from_integrator
 
 Params = dict[str, Any]
 
@@ -285,9 +286,10 @@ def run_single(
     else:
         sim = run_simulation(params, **call_kwargs)
 
-    success = bool(sim["success"])
+    integrator_success = bool(sim["success"])
     message = str(sim["message"])
-    if not success:
+    is_wallclock_timeout = "Wallclock timeout" in message
+    if not integrator_success and not is_wallclock_timeout:
         warnings.warn(
             f"[n={n}] Simulation reported success=False, message={message!r}; "
             "using final state for measurements.",
@@ -297,6 +299,11 @@ def run_single(
 
     t_arr = np.asarray(sim["t"], dtype=float)
     t_final = float(t_arr[-1]) if t_arr.size else t_span[0]
+    t_end = float(t_span[1])
+    if is_wallclock_timeout:
+        outcome = "timeout"
+    else:
+        outcome = outcome_from_integrator(integrator_success, t_final, t_end)
 
     C_final = np.asarray(sim["C_final"], dtype=float)
     g_final = np.asarray(sim["g_final"], dtype=float)
@@ -307,7 +314,7 @@ def run_single(
 
     return {
         "n": int(n),
-        "success": success,
+        "outcome": outcome,
         "message": message,
         "t_final": t_final,
         "hit_blowup": _infer_hit_blowup(g_final),
@@ -388,7 +395,7 @@ def run_sweep(
             )
             meta = {
                 "n": n,
-                "success": row["success"],
+                "outcome": row["outcome"],
                 "message": row["message"],
                 "t_final": row["t_final"],
                 "hit_blowup": row["hit_blowup"],

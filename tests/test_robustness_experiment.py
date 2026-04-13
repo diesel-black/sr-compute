@@ -20,7 +20,7 @@ def test_robustness_experiment_quick_rows_and_finite_measurements():
         n = int(r["n"])
         assert n in re.ROBUSTNESS_NS
         assert math.isfinite(float(r["t_final"]))
-        assert isinstance(r["success"], bool)
+        assert r["outcome"] in ("completed", "terminal")
         assert math.isfinite(float(r["C_range"]))
         assert isinstance(r["metastable_count"], int)
         for key in ("kappa", "spectral_ratio", "eta_f1", "growth"):

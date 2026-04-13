@@ -114,7 +114,7 @@ def _save_parity_row(
         "n": row["n"],
         "solver": row["params"].get("method"),
         "t_final": row["t_final"],
-        "success": row["success"],
+        "outcome": row["outcome"],
         "message": row["message"],
         "hit_blowup": row["hit_blowup"],
         "measurements": _to_jsonable(row["measurements"]),
@@ -203,7 +203,7 @@ def run_parity_experiment(
             "label": label,
             "n": n,
             "t_final": row["t_final"],
-            "success": row["success"],
+            "outcome": row["outcome"],
             "message": row["message"],
             "hit_blowup": row["hit_blowup"],
             "measurements": row["measurements"],
@@ -215,7 +215,7 @@ def run_parity_experiment(
         by_label[label] = flat
         print(
             f"[parity {tag}] done. solver={row['params'].get('method')} t_final={row['t_final']!s} "
-            f"success={row['success']}",
+            f"outcome={row['outcome']}",
             flush=True,
         )
 

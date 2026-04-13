@@ -16,7 +16,7 @@ from experiments.polynomial_sweep.run import build_params, run_single, run_sweep
 def _expected_keys() -> set[str]:
     return {
         "n",
-        "success",
+        "outcome",
         "message",
         "t_final",
         "hit_blowup",
@@ -46,7 +46,7 @@ def test_run_single_quick_n3():
     assert set(row.keys()) == _expected_keys()
     assert set(row["fields"].keys()) == _field_keys()
     assert row["fields"]["C_final"].size == QUICK["N"]
-    assert row["success"] is True
+    assert row["outcome"] == "completed"
     m = row["measurements"]
     assert m["metastable_count"] == 2
     assert m["condition_number"] == pytest.approx(1.0)
@@ -62,6 +62,7 @@ def test_run_single_quick_n3():
 def test_run_single_quick_n4():
     row = run_single(4, grid=QUICK, integration=QUICK)
     assert set(row.keys()) == _expected_keys()
+    assert row["outcome"] in ("completed", "terminal")
     m = row["measurements"]
     assert m["metastable_count"] == 3
     assert m["condition_number"] is not None
@@ -120,6 +121,7 @@ def test_save_and_load():
 
         with (d / "n3_measurements.json").open(encoding="utf-8") as f:
             meta = json.load(f)
+        assert meta.get("outcome") in ("completed", "terminal", "timeout")
         for key in ("metastable_count", "condition_number", "spectral_ratio", "nonlocal_growth"):
             assert key in meta["measurements"]
 

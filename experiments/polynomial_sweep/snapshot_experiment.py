@@ -34,6 +34,7 @@ from experiments.polynomial_sweep.config import (
     RECONSTRUCTION_LUT,
     RESULTS_DIR,
 )
+from experiments.polynomial_sweep.outcome_utils import outcome_from_integrator
 from models.dim_1plus1.mfe import run_simulation
 from shared.metrics import (
     count_metastable_states,
@@ -223,11 +224,21 @@ def run_snapshot_for_n(
     c_hist = np.asarray(sim["C_history"], dtype=float)
     g_hist = np.asarray(sim["g_history"], dtype=float)
 
+    t_final_meta = float(t_hist[-1]) if t_hist.size else float("nan")
+    if t_hist.size:
+        run_outcome = outcome_from_integrator(
+            bool(sim["success"]),
+            t_final_meta,
+            float(t_span[1]),
+        )
+    else:
+        run_outcome = "terminal"
+
     meta = {
         "n": n,
-        "success": bool(sim["success"]),
+        "outcome": run_outcome,
         "message": str(sim["message"]),
-        "t_final": float(t_hist[-1]) if t_hist.size else float("nan"),
+        "t_final": t_final_meta,
         "method": params["method"],
         "t_span": list(t_span),
     }
@@ -381,7 +392,7 @@ def run_snapshot_experiment(
     ]
     for m in run_metas:
         header_lines.append(
-            f"  n={m['n']}: success={m['success']}, t_final={m['t_final']}, "
+            f"  n={m['n']}: outcome={m['outcome']}, t_final={m['t_final']}, "
             f"method={m['method']}, message={m['message']!r}"
         )
     header_lines.extend(["", "Columns: meta = metastable_count (landscape-only, constant in n).", ""])

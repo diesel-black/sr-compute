@@ -37,6 +37,7 @@ from experiments.polynomial_sweep.config import (
     RECONSTRUCTION_LUT,
     RESULTS_DIR,
 )
+from experiments.polynomial_sweep.outcome_utils import outcome_from_integrator
 from models.dim_1plus1.mfe import run_simulation
 from shared.metrics import (
     interpretive_condition_number,
@@ -53,9 +54,6 @@ QUICK_SEEDS: tuple[int, ...] = tuple(range(5))
 
 KAPPA_N3_TOL = 1e-9
 GROWTH_VERDICT_EPS = 1e-6
-
-# ``completed`` requires integrator success and t_final within this relative band of t_span[1].
-T_FINAL_COMPLETION_RTOL = 0.01
 
 # Per-integration wallclock (SIGALRM / setitimer). Quick mode uses a shorter cap.
 WALLCLOCK_TIMEOUT_S = 90.0
@@ -90,23 +88,6 @@ def _run_with_wallclock(seconds: float, fn: Callable[[], _T]) -> _T:
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
-
-
-def _t_final_at_horizon(t_final: float, t_end: float, *, rtol: float = T_FINAL_COMPLETION_RTOL) -> bool:
-    """True if ``t_final`` matches the integration end time within relative ``rtol``."""
-    if not (math.isfinite(t_final) and math.isfinite(t_end)):
-        return False
-    span = abs(float(t_end) - float(t_final))
-    if abs(t_end) < 1e-14:
-        return span < 1e-14
-    return span <= float(rtol) * abs(t_end)
-
-
-def _outcome_from_sim(integrator_success: bool, t_final: float, t_end: float) -> str:
-    """Physical outcome: ``completed`` (survived to horizon), ``terminal`` (stopped early with data)."""
-    if integrator_success and _t_final_at_horizon(t_final, t_end):
-        return "completed"
-    return "terminal"
 
 
 def build_params_ensemble(n: int, *, quick: bool) -> dict[str, Any]:
@@ -244,7 +225,7 @@ def run_one_seed(
         t_final = float(t_arr[-1]) if t_arr.size else float(t_span[0])
         integrator_success = bool(sim["success"])
         t_end = float(t_span[1])
-        outcome = _outcome_from_sim(integrator_success, t_final, t_end)
+        outcome = outcome_from_integrator(integrator_success, t_final, t_end)
 
         C_final = np.asarray(sim["C_final"], dtype=float)
         c_range = float(np.max(C_final) - np.min(C_final)) if C_final.size else float("nan")
