@@ -10,7 +10,7 @@ The repo is NOT a generic PDE solver. Every function implements a specific mathe
 
 ## Current Task
 
-Thread 7 from the Cubic Aperture research program: a parameter sweep across polynomial order n = 2, 3, 4, 5, 6 in the 1+1 model, measuring four quantities simultaneously to test provisional structural results R25-R28. See `experiments/polynomial-sweep/` for the experiment specification.
+Thread 7 from the Cubic Aperture research program: a parameter sweep across polynomial order n = 2, 3, 4, 5, 6 in the 1+1 model, measuring four quantities simultaneously to test provisional structural results R25-R28. See `experiments/polynomial_sweep/` for the experiment specification.
 
 ## The Theory in Brief
 
@@ -68,7 +68,7 @@ sr-compute/
 │   ├── dim_2plus1/        # Future: 2+1 model (Gaussian curvature, scalar RFE)
 │   └── dim_3plus1/        # Future: 3+1 model (full tensorial RFE)
 ├── experiments/
-│   └── polynomial-sweep/  # Thread 7 experiment
+│   └── polynomial_sweep/  # Thread 7 experiment
 │       ├── config.yaml    # Parameter ranges, grid specs, sweep values
 │       ├── run.py         # Execute the sweep
 │       ├── analyze.py     # Post-processing and comparison to predictions

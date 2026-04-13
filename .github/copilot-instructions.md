@@ -22,7 +22,7 @@ pytest tests/test_metrics.py::test_count_metastable_states_n3_two_maxima_baselin
 - `models/dim_1plus1/` builds the executable 1+1 dynamics on top of `shared/`. `cfe.py` implements the fixed-metric coherence equation and Laplace-Beltrami stencil; `mfe.py` implements the metric equation plus the coupled solver. The public entry points are re-exported from `models.dim_1plus1`, especially `run_simulation()`.
 - The coupled solver in `models/dim_1plus1/mfe.py` evolves `concat(C, log g)` rather than `(C, g)`. That representation is deliberate: it keeps the metric positive, the stored state aligned with the metric used by the CFE/MFE RHS functions, and supports the default metric floor/ceiling events.
 - `tests/` are the executable spec for the formalism. They do more than smoke-test numerics: they encode branch behavior in reconstruction, the n=3 analytical brake match, the expected n>3 mismatch trend, and the four Thread 7 measurements.
-- `experiments/polynomial-sweep/` is the intended research driver layer for Thread 7, but the current executable substance is still concentrated in `shared/` and `models/dim_1plus1/`. Treat the experiment scripts there as scaffolding unless they are expanded.
+- `experiments/polynomial_sweep/` is the research driver layer for Thread 7 (sweep config and `run.py`). Deeper numerics remain in `shared/` and `models/dim_1plus1/`.
 
 ## Key conventions
 

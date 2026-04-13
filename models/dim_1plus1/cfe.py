@@ -36,7 +36,13 @@ def laplace_beltrami_1d(C: np.ndarray, g: np.ndarray, dx: float) -> np.ndarray:
     return (1.0 / g) * (d2C - (dg * dC) / (2.0 * g))
 
 
-def cfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
+def cfe_rhs(
+    C: np.ndarray,
+    g: np.ndarray,
+    params: Params,
+    *,
+    psi_bar: np.ndarray | None = None,
+) -> np.ndarray:
     r"""Right-hand side of the 1+1 CFE (Appendix A.1.6):
 
     \partial_t C = \Delta_g C + V'_{\mathrm{eff}}(C)
@@ -47,6 +53,9 @@ def cfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
 
     When \(\lambda_B = 0\), the brake chain is skipped so `reconstruct` is not called (avoids per-grid-point
     root finding on every RHS evaluation).
+
+    Optional precomputed ``psi_bar = h(C)`` (same shape as ``C``) avoids duplicate inverses when the
+    coupled driver already evaluated ``h`` once per RHS.
     """
     C = np.asarray(C, dtype=float)
     g = np.asarray(g, dtype=float)
@@ -62,7 +71,10 @@ def cfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
     reaction = V_eff_prime(C, mu_sq, alpha_phi)
     if lambda_b == 0.0:
         return diffusion + reaction
-    psi_bar = reconstruct(C, n, gamma)
+    if psi_bar is None:
+        psi_bar = reconstruct(C, n, gamma)
+    else:
+        psi_bar = np.asarray(psi_bar, dtype=float)
     brake = brake_variation_analytical(psi_bar, n, gamma, sigma, g_metric=g)
     return diffusion + reaction + lambda_b * brake
 

@@ -14,7 +14,7 @@ from shared.metrics import (
     spectral_concentration_ratio,
 )
 from shared.potentials import attractor_stability, equilibrium_C_star
-from shared.reconstruction import reconstruct
+from shared.reconstruction import ReconstructionLUT, reconstruct
 
 _LOG_G_CAP = float(_mfe._LOG_G_CAP)
 mfe_rhs = _mfe.mfe_rhs
@@ -114,6 +114,34 @@ def test_mfe_expansion_at_wall():
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
+def test_coupled_with_lut_matches_brentq_integrator():
+    """Short coupled segment: ReconstructionLUT path matches direct reconstruct in RHS."""
+    N, L = 32, 10.0
+    p = _baseline_params(N=N, L=L)
+    C0, g0 = initial_conditions(N, L, seed=3, C_amplitude=0.01)
+    t_span = (0.0, 2.0)
+    kw = dict(
+        t_span=t_span,
+        method="RK23",
+        max_step=0.25,
+        rtol=5e-4,
+        atol=5e-5,
+    )
+    lut = ReconstructionLUT(
+        int(p["n"]),
+        float(p["gamma"]),
+        -10.0,
+        10.0,
+        n_samples=8000,
+    )
+    out_lut = integrate_coupled(C0, g0, p, reconstruct_fn=lut, **kw)
+    out_br = integrate_coupled(C0, g0, p, reconstruct_fn=None, **kw)
+    assert out_lut["success"] and out_br["success"]
+    # Linear LUT + explicit brentq RHS differ at ~1e-3 after a few RK steps; keep tight but IVP-stable.
+    np.testing.assert_allclose(out_lut["C_history"][-1], out_br["C_history"][-1], rtol=0, atol=2e-3)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_coupled_integration_short():
     p = _baseline_params(N=12, L=1.0)
     C0, g0 = initial_conditions(p["N"], p["L"], seed=7, C_amplitude=0.01)
@@ -138,7 +166,7 @@ def test_coupled_integration_short():
     assert np.all(np.isfinite(g_end))
 
 
-def _event_metric_ceiling_small(t: float, y: np.ndarray, params: dict) -> float:
+def _event_metric_ceiling_small(t: float, y: np.ndarray, *args) -> float:
     """Terminal when max(g) crosses 6 (`y` is concat(C, log g); clip matches `coupled_rhs`)."""
     n = y.size // 2
     log_g = np.clip(y[n:], np.log(1e-300), _LOG_G_CAP)

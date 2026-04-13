@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any, Mapping, Union
 
 import numpy as np
 from scipy.integrate import solve_ivp
 
 from shared.potentials import attractor_stability
-from shared.reconstruction import reconstruct
+from shared.reconstruction import ReconstructionLUT, reconstruct
 
 from .cfe import cfe_rhs
 
@@ -16,7 +17,7 @@ Params = Union[Mapping[str, Any], dict[str, Any]]
 
 _LOG_G_FLOOR = np.log(1e-300)
 # Keep exp(log_g) finite in float64 (implicit solvers may probe huge intermediate log_g).
-_LOG_G_CAP = float(np.nextafter(np.log(np.finfo(np.float64).max), 0.0))
+_LOG_G_CAP = float(np.nextafter(np.log(sys.float_info.max), 0.0))
 
 
 def _centered_gradient(f: np.ndarray, dx: float) -> np.ndarray:
@@ -24,14 +25,20 @@ def _centered_gradient(f: np.ndarray, dx: float) -> np.ndarray:
     return (np.roll(f, -1) - np.roll(f, 1)) / (2.0 * dx)
 
 
-def mfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
+def mfe_rhs(
+    C: np.ndarray,
+    g: np.ndarray,
+    params: Params,
+    *,
+    psi_bar: np.ndarray | None = None,
+) -> np.ndarray:
     r"""Right-hand side of the 1+1 MFE with \(R_{\mu\nu}\equiv 0\) (no Ricci term):
 
     \partial_t g = -2\eta_g\, A(C)\, (\partial_x C)^2
         + \frac{6\xi_g\gamma}{\pi\sigma^2}\, h(C)\, g.
 
-    \(A(C)\) is `attractor_stability`; \(h(C)\) is `reconstruct`; \((\partial_x C)^2\) uses the
-    periodic centered gradient matching the CFE diffusion stencil.
+    \(A(C)\) is `attractor_stability`; \(h(C)\) is `reconstruct` unless ``psi_bar`` is supplied;
+    \((\partial_x C)^2\) uses the periodic centered gradient matching the CFE diffusion stencil.
     """
     C = np.asarray(C, dtype=float)
     g = np.asarray(g, dtype=float)
@@ -51,7 +58,10 @@ def mfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
 
     dC = _centered_gradient(C, dx)
     A_C = attractor_stability(C, mu_sq, alpha_phi)
-    psi_bar = reconstruct(C, n, gamma)
+    if psi_bar is None:
+        psi_bar = reconstruct(C, n, gamma)
+    else:
+        psi_bar = np.asarray(psi_bar, dtype=float)
 
     contraction = -2.0 * eta_g * A_C * (dC**2)
     expansion_coef = (6.0 * xi_g * gamma) / (np.pi * sigma**2)
@@ -60,7 +70,12 @@ def mfe_rhs(C: np.ndarray, g: np.ndarray, params: Params) -> np.ndarray:
     return contraction + reflexive
 
 
-def coupled_rhs(t: float, state: np.ndarray, params: Params) -> np.ndarray:
+def coupled_rhs(
+    t: float,
+    state: np.ndarray,
+    params: Params,
+    reconstruct_fn: Any | None = None,
+) -> np.ndarray:
     r"""Combined RHS for the coupled system.
 
     The IVP state is ``concat(C, \log g)`` (length \(2N\)), not ``(C, g)``. With \(g = \exp(\log g)\)
@@ -80,8 +95,13 @@ def coupled_rhs(t: float, state: np.ndarray, params: Params) -> np.ndarray:
     log_g = np.clip(state[n_grid:], _LOG_G_FLOOR, _LOG_G_CAP)
     g = np.exp(log_g)
 
-    dCdt = cfe_rhs(C, g, params)
-    dgdt = mfe_rhs(C, g, params)
+    if reconstruct_fn is not None:
+        psi_bar = reconstruct_fn(C)
+    else:
+        psi_bar = None
+
+    dCdt = cfe_rhs(C, g, params, psi_bar=psi_bar)
+    dgdt = mfe_rhs(C, g, params, psi_bar=psi_bar)
     dlogg_dt = dgdt / g
     return np.concatenate([dCdt, dlogg_dt])
 
@@ -99,7 +119,8 @@ def initial_conditions(
     return C0, g0
 
 
-def _event_metric_floor(t: float, y: np.ndarray, params: Params) -> float:
+def _event_metric_floor(t: float, y: np.ndarray, *args: Any) -> float:
+    """Terminal when min(g) hits floor; ``*args`` matches ``solve_ivp(..., args=(params, reconstruct_fn))``."""
     n = y.size // 2
     log_g = np.clip(y[n:], _LOG_G_FLOOR, _LOG_G_CAP)
     g_min = float(np.min(np.exp(log_g)))
@@ -110,7 +131,8 @@ _event_metric_floor.terminal = True  # type: ignore[attr-defined]
 _event_metric_floor.direction = -1.0  # type: ignore[attr-defined]
 
 
-def _event_metric_ceiling(t: float, y: np.ndarray, params: Params) -> float:
+def _event_metric_ceiling(t: float, y: np.ndarray, *args: Any) -> float:
+    """Terminal when max(g) hits ceiling; ``*args`` matches ``solve_ivp`` extra args after ``params``."""
     n = y.size // 2
     log_g = np.clip(y[n:], _LOG_G_FLOOR, _LOG_G_CAP)
     g_max = float(np.max(np.exp(log_g)))
@@ -132,11 +154,15 @@ def integrate_coupled(
     events: Any | None = None,
     rtol: float = 1e-8,
     atol: float = 1e-10,
+    reconstruct_fn: Any | None = None,
 ) -> dict[str, Any]:
     """Coupled `solve_ivp` driver; internal state uses `\log g` so `g` stays positive.
 
     Default terminal events catch metric collapse or blowup (§A.1.8). For stiff diffusion at moderate
     `N`, implicit `Radau` with relaxed tolerances is often far cheaper than `RK45`.
+
+    Optional ``reconstruct_fn`` (e.g. ``ReconstructionLUT``) maps ``C`` to ``psi_bar`` vectorized;
+    ``None`` uses ``reconstruct`` inside each RHS evaluation.
     """
     C0 = np.asarray(C0, dtype=float).ravel()
     g0 = np.asarray(g0, dtype=float).ravel()
@@ -162,7 +188,7 @@ def integrate_coupled(
         state0,
         method=method,
         t_eval=t_eval,
-        args=(p,),
+        args=(p, reconstruct_fn),
         rtol=rtol,
         atol=atol,
         max_step=max_step,
@@ -203,8 +229,17 @@ def run_simulation(
     max_step: float = 0.1,
     rtol: float = 1e-8,
     atol: float = 1e-10,
+    use_reconstruction_lut: bool = True,
+    lut_C_min: float = -15.0,
+    lut_C_max: float = 15.0,
+    lut_n_samples: int = 10_000,
 ) -> dict[str, Any]:
-    """Initial conditions, coupled integration, spatial grid, and final reconstructed \(\bar\psi = h(C)\)."""
+    """Initial conditions, coupled integration, spatial grid, and final reconstructed \(\bar\psi = h(C)\).
+
+    By default builds a `ReconstructionLUT` for h(C) so each RHS evaluation avoids per-grid-point
+    `brentq` in `reconstruct`. Set ``use_reconstruction_lut=False`` for debugging against direct root
+    finding. Table bounds ``lut_C_min`` / ``lut_C_max`` should bracket |C| during the run.
+    """
     N = int(params["N"])
     L = float(params["L"])
     dx = float(params["dx"])
@@ -213,6 +248,21 @@ def run_simulation(
 
     x = np.linspace(0.0, L, N, endpoint=False, dtype=float)
     C0, g0 = initial_conditions(N, L, seed=seed)
+
+    reconstruct_fn: Any | None
+    lut: ReconstructionLUT | None
+    if use_reconstruction_lut:
+        lut = ReconstructionLUT(
+            n_poly,
+            gamma,
+            lut_C_min,
+            lut_C_max,
+            n_samples=lut_n_samples,
+        )
+        reconstruct_fn = lut
+    else:
+        lut = None
+        reconstruct_fn = None
 
     out = integrate_coupled(
         C0,
@@ -224,6 +274,7 @@ def run_simulation(
         max_step=max_step,
         rtol=rtol,
         atol=atol,
+        reconstruct_fn=reconstruct_fn,
     )
     C_hist = out["C_history"]
     g_hist = out["g_history"]
@@ -235,7 +286,10 @@ def run_simulation(
         C_final = C_hist[-1, :].copy()
         g_final = g_hist[-1, :].copy()
 
-    psi_bar_final = np.asarray(reconstruct(C_final, n_poly, gamma), dtype=float)
+    if lut is not None:
+        psi_bar_final = np.asarray(lut(C_final), dtype=float)
+    else:
+        psi_bar_final = np.asarray(reconstruct(C_final, n_poly, gamma), dtype=float)
 
     return {
         **out,
