@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 import math
+import time
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
@@ -71,6 +73,13 @@ STRUCTURED_C_RANGE_EPS = 1e-6
 
 # Integration horizon used in Q3 when comparing to t=30 (full run uses 30.0 from config).
 T_LAB_TARGET = 30.0
+
+
+def _fmt_cli_num(x: float, *, decimals: int = 2) -> str:
+    """Compact float for CLI progress lines (matches ensemble experiment style)."""
+    if not math.isfinite(x):
+        return "nan"
+    return f"{x:.{decimals}f}"
 
 
 def _repo_root() -> Path:
@@ -431,18 +440,21 @@ def run_robustness_experiment(
 
     rows: list[dict[str, Any]] = []
     step_i = 0
+    w = len(str(total_steps))
     for label, sr_core in cases:
         for n in ROBUSTNESS_NS:
             step_i += 1
-            print(
-                f"[robustness] ({step_i}/{total_steps}) start  perturbation={label} n={n}",
-                flush=True,
-            )
+            t0 = time.perf_counter()
             row = run_one_case(label, sr_core, n, quick=quick)
             rows.append(row)
+            elapsed = time.perf_counter() - t0
+            counter = f"({step_i:>{w}}/{total_steps})"
             print(
-                f"[robustness] ({step_i}/{total_steps}) done   perturbation={label} n={n} "
-                f"outcome={row['outcome']} t_final={row['t_final']}",
+                f"[robustness] {counter} {label:<15} n={n}  -> {str(row['outcome']):<9}  "
+                f"t={_fmt_cli_num(float(row['t_final']))}  "
+                f"C_range={_fmt_cli_num(float(row['C_range']))}  "
+                f"kappa={_fmt_cli_num(float(row['kappa']))}  "
+                f"({elapsed:.1f}s)",
                 flush=True,
             )
 
@@ -482,6 +494,7 @@ def run_robustness_experiment(
 
 
 def main() -> None:
+    warnings.filterwarnings("ignore", message=r".*ReconstructionLUT.*", category=UserWarning)
     parser = argparse.ArgumentParser(
         description="Thread 7 robustness experiment (parameter perturbations, n=3,4,5)"
     )

@@ -329,6 +329,13 @@ def run_single(
     }
 
 
+def _fmt_cli_num(x: float, *, decimals: int = 2) -> str:
+    """Compact float for CLI progress lines."""
+    if not math.isfinite(x):
+        return "nan"
+    return f"{x:.{decimals}f}"
+
+
 def run_sweep(
     n_values: Optional[list[int]] = None,
     grid: Optional[Mapping[str, Any]] = None,
@@ -351,9 +358,16 @@ def run_sweep(
     out_dir = Path(results_dir or RESULTS_DIR)
     t0 = time.perf_counter()
     results: list[dict[str, Any]] = []
+    total_steps = len(ns)
+    w = len(str(total_steps))
 
-    for n in ns:
-        print(f"[n={n}] Starting simulation...", flush=True)
+    for step_i, n in enumerate(ns, start=1):
+        if n == 2:
+            print(
+                "[sweep] n=2: brake kernel singular at psi_bar=0; metastable count uses V_eff(C(psi_bar)) only.",
+                flush=True,
+            )
+        t_step = time.perf_counter()
         row = run_single(
             n,
             grid=grid,
@@ -363,15 +377,20 @@ def run_sweep(
             max_wallclock=max_wallclock,
         )
         results.append(row)
+        elapsed_step = time.perf_counter() - t_step
         mc = row["measurements"]["metastable_count"]
+        meta_s = str(mc) if mc is not None else "?"
+        counter = f"({step_i:>{w}}/{total_steps})"
         print(
-            f"[n={n}] Done. t_final={row['t_final']}, blowup={row['hit_blowup']}, "
-            f"metastable_count={mc}",
+            f"[sweep] {counter} n={n}  -> {str(row['outcome']):<9}  "
+            f"t={_fmt_cli_num(float(row['t_final']))}  "
+            f"metastable={meta_s}  "
+            f"({elapsed_step:.1f}s)",
             flush=True,
         )
         if "Wallclock timeout" in str(row["message"]):
             print(
-                f"[n={n}] Hint: integrator hit wallclock; use --wallclock 0 to retry this n, "
+                f"[sweep] n={n}: integrator hit wallclock; use --wallclock 0 to retry, "
                 "or check INTEGRATION_OVERRIDES_BY_N / Radau settings.",
                 flush=True,
             )
@@ -411,7 +430,33 @@ def run_sweep(
     return results
 
 
-if __name__ == "__main__":
+def _apply_cli_warning_filters() -> None:
+    """Suppress noisy UserWarnings during ``python -m experiments.polynomial_sweep.run`` only."""
+    warnings.filterwarnings("ignore", message=r".*ReconstructionLUT.*", category=UserWarning)
+    warnings.filterwarnings(
+        "ignore",
+        message=r"\[n=\d+\] Simulation reported success=False, message=.*; using final state for measurements\.",
+        category=UserWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"n=2: brake variation diverges like 1/psi_bar at the origin.*",
+        category=UserWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"n=2: metastable count uses V_eff\(C\(psi_bar\)\) only.*",
+        category=UserWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"n=2: brake integrand B_n diverges.*",
+        category=UserWarning,
+    )
+
+
+def main() -> None:
+    _apply_cli_warning_filters()
     import argparse
 
     parser = argparse.ArgumentParser(description="Thread 7 polynomial sweep")
@@ -472,3 +517,7 @@ if __name__ == "__main__":
         save=not args.no_save,
         max_wallclock=wallclock_sec,
     )
+
+
+if __name__ == "__main__":
+    main()
