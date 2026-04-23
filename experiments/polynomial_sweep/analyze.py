@@ -130,9 +130,11 @@ def _write_predicted_observed(
         "  R27: spectral ratio departs from diffuse baseline when leading singular mode concentrates.",
         "  RG marginality: eta(f) and growth across coarse scales probe discrete brake consistency.",
         "",
-        f"{'Quantity':<22} | {'n=2':<12} | {'n=3':<12} | {'n=4':<12} | {'n=5':<12} | {'n=6':<12}",
-        "-" * 95,
     ]
+    n_keys = sorted(summary.keys(), key=lambda k: int(k))
+    col_w = 12
+    header_row = f"{'Quantity':<22} | " + " | ".join(f"{'n='+nk:<{col_w}}" for nk in n_keys)
+    lines.extend([header_row, "-" * len(header_row)])
 
     quantities = (
         ("metastable_count", "metastable_count", 0),
@@ -144,7 +146,7 @@ def _write_predicted_observed(
 
     for qname, key, prec in quantities:
         cells = []
-        for nk in ("2", "3", "4", "5", "6"):
+        for nk in n_keys:
             m = summary.get(nk, {})
             if key == "_eta":
                 val = _first_eta(m.get("nonlocal_growth"))
@@ -154,7 +156,7 @@ def _write_predicted_observed(
                 cells.append(_fmt(val, prec))
             else:
                 cells.append(_fmt(m.get(key), prec))
-        row = f"{qname:<22} | " + " | ".join(f"{c:<12}" for c in cells)
+        row = f"{qname:<22} | " + " | ".join(f"{c:<{col_w}}" for c in cells)
         lines.append(row)
 
     lines.append("")
@@ -165,7 +167,7 @@ def _write_predicted_observed(
             "  for t_final). Full-precision values remain in summary.json and n*_measurements.json.",
         ]
     )
-    for nk in ("2", "3", "4", "5", "6"):
+    for nk in n_keys:
         meta = per_n_meta.get(nk)
         if meta:
             lines.append(f"  n={nk}:{meta['short']}")
@@ -279,34 +281,38 @@ def _write_clean_findings(summary: dict[str, Any], out: TextIO) -> None:
     """Structural statements that are algebraic or robust to the solver confound."""
     m3 = summary.get("3", {})
     m4 = summary.get("4", {})
-    m5 = summary.get("5", {})
-    m6 = summary.get("6", {})
 
     k3 = m3.get("condition_number")
     k4 = m4.get("condition_number")
     s4 = m4.get("spectral_ratio")
     g4 = _growth_first(m4.get("nonlocal_growth"))
 
-    eta3 = _first_eta(m3.get("nonlocal_growth"))
-    eta4 = _first_eta(m4.get("nonlocal_growth"))
-    eta5 = _first_eta(m5.get("nonlocal_growth"))
-    eta6 = _first_eta(m6.get("nonlocal_growth"))
+    # Build eta ladder from all available n >= 3, sorted.
+    n_keys_gte3 = sorted((k for k in summary if int(k) >= 3), key=int)
+    eta_ladder = " -> ".join(
+        _fmt(_first_eta(summary[nk].get("nonlocal_growth"))) for nk in n_keys_gte3
+    )
+    n_ladder_label = f"n={n_keys_gte3[0]} to n={n_keys_gte3[-1]}" if n_keys_gte3 else "n=3..?"
+
+    # Metastable count parity: odd n → 2, even n → 3 (structural if it holds across the sweep).
+    n_keys_all = sorted(summary.keys(), key=int)
+    mc_pairs = [(nk, summary[nk].get("metastable_count")) for nk in n_keys_all]
+    mc_line = "  Metastable counts by n: " + ", ".join(
+        f"n={nk}: {_fmt(mc, 0)}" for nk, mc in mc_pairs if mc is not None
+    ) + "."
 
     lines = [
         "3. Clean findings (hold regardless of which solver produced the snapshot, with caveats)",
         "",
         f"  Algebraic: at n=3, kappa(Pi) equals 1 by definition (exponent n-3=0); observed {_fmt(k3)}.",
-        f"  Metastable landscape count: {_fmt(m3.get('metastable_count'), 0)} at n=3, "
-        f"{_fmt(m4.get('metastable_count'), 0)} at n=4 (matches cusp vs swallowtail expectation in tests).",
-        f"  Cross-n eta scaling at f=1 (sweep snapshots): "
-        f"{_fmt(eta3)} -> {_fmt(eta4)} -> {_fmt(eta5)} -> {_fmt(eta6)} "
-        f"(roughly x7, x5, x3 multipliers stepwise n=3 to 6).",
+        mc_line,
+        f"  Cross-n eta scaling at f=1 (sweep snapshots, {n_ladder_label}): {eta_ladder}.",
         f"  n=4 simultaneous breakpoint (sweep, Radau, early stop): "
         f"kappa {_fmt(k4)}, spectral {_fmt(s4)}, first growth {_fmt(g4)}.",
         "",
-        "Caveat: the eta ladder uses each n's final field; if n=5 and n=6 fields are spatially flat due",
-        "  to implicit integration, eta values are still defined but no longer probe the same",
-        "  structural regime as shorter-time structured states at n=3 and n=4.",
+        "Caveat: the eta ladder uses each n's final field; for n>=5 the metric completes to t=30",
+        "  and the field may be spatially flat, so eta values are structurally defined but reflect",
+        "  a different dynamical regime than the structured terminal states at n=3 and n=4.",
         "",
     ]
     text = "\n".join(lines)
