@@ -1,0 +1,62 @@
+Thread 7 bimodal basin characterization (n=4)
+Run timestamp: 2026-04-23 21:38:49 UTC
+quick_mode: True
+basin_n: 4
+path_a_threshold (C_range): 1.0
+baseline_params: {'mu_sq': 1.0, 'alpha_phi': 1.0, 'gamma': 1.0, 'sigma': 0.5, 'lambda_B': 0.5, 'eta_g': 1.0, 'xi_g': 0.1}
+grid: N=32  L=10.0  dx=0.312500
+integration: method=Radau  t_span=(0.0, 5.0)  max_step=0.5
+
+Classification: Path A = fine-structure death (C_range < threshold, short survival, growth > 1)
+                Path B = amplitude death     (C_range >= threshold, long survival, growth ≈ 1)
+
+=== Phase 1: IC amplitude sweep  (n_points=8  seeds/A=2  A_range=[1.000e-03, 1.000e+01]) ===
+
+        A | seed |    path | C_range |   kappa |   spec | growth |   outcome
+----------------------------------------------------------------------------
+1.000e-03 |    0 |       A |  0.0051 |  1.6642 | 0.2986 | 1.0000 | completed
+1.000e-03 |    1 |       A |  0.0063 | 19.5862 | 0.4303 | 1.0000 | completed
+3.728e-03 |    0 |       A |  0.0193 |  1.6725 | 0.2999 | 1.0000 | completed
+3.728e-03 |    1 |       A |  0.0235 | 20.3007 | 0.4352 | 1.0000 | completed
+1.389e-02 |    0 |       A |  0.0816 |  1.7411 | 0.3107 | 1.0000 | completed
+1.389e-02 |    1 |       A |  0.0879 | 23.5029 | 0.4535 | 1.0000 | completed
+5.179e-02 |    0 |       A |  0.2970 |  1.3973 | 0.2391 | 1.0000 | completed
+5.179e-02 |    1 |       A |  0.3493 | 64.0401 | 0.5231 | 1.0000 | completed
+1.931e-01 |    0 |       A |  0.2295 |  1.1419 | 0.1986 | 1.0000 | completed
+1.931e-01 |    1 |       B |  1.3127 | 52.5770 | 0.4043 | 1.0000 | completed
+7.197e-01 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
+7.197e-01 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
+2.683e+00 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
+2.683e+00 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
+1.000e+01 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
+1.000e+01 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
+
+Amplitude → path assignment (counts per A):
+  A=1.000e-03  A:2 B:0
+  A=3.728e-03  A:2 B:0
+  A=1.389e-02  A:2 B:0
+  A=5.179e-02  A:2 B:0
+  A=1.931e-01  A:1 B:1
+  A=7.197e-01  A:0 B:0 ?:2
+  A=2.683e+00  A:0 B:0 ?:2
+  A=1.000e+01  A:0 B:0 ?:2
+
+Basin boundary estimate (amplitude axis):
+  Note: 6 runs diverged (NaN in n=4 even-branch reconstruction). Large-amplitude ICs push C below the principal-branch floor; these amplitudes are outside the valid domain of the n=4 coarse-graining map.
+  Last amplitude with all Path A seeds: A=5.179e-02
+  First amplitude with any Path B seed: A=1.931e-01
+  Boundary bracket: [5.179e-02, 1.931e-01]
+  Refine with denser sampling in this bracket to locate the swallowtail seam.
+
+=== Phase 2: IC wavenumber sweep  (A_fixed=1.000e-02  k0_max=5) ===
+
+k0 | path | C_range |   kappa |   spec | growth |   outcome
+-----------------------------------------------------------
+ 1 |    A |  0.4568 | 41.0690 | 0.4542 | 1.0000 | completed
+ 2 |    A |  0.0012 |  2.5760 | 0.2992 | 1.0000 | completed
+ 3 |    A |  0.0000 |  1.0002 | 0.1772 | 1.0000 | completed
+ 4 |    A |  0.0000 |  1.0000 | 0.1772 | 1.0000 | completed
+ 5 |    A |  0.0000 |  1.0000 | 0.1772 | 1.0000 | completed
+
+Wavenumber → path assignment:
+  Path A (fine-structure death): k0 = [1, 2, 3, 4, 5]
