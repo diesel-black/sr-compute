@@ -6,3 +6,4 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 CLAUDE.md
+sr_compute.egg-info/
