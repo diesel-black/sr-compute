@@ -43,7 +43,7 @@ Solver-parity controls (`parity_experiment.py`) support treating these regime di
 SR couples a coherence field C(x,t) and a metric g(x,t) on a semantic manifold through three field equations:
 
 - **CFE** (Coherence Field Equation): how coherence evolves given the geometry.
-- **RFE** (Recursive Field Equation): how coherence sources curvature (trivial in 1D since R = 0).
+- **RFE** (Recurgent Field Equation): how coherence sources curvature (trivial in 1D since R = 0).
 - **MFE** (Metric Field Equation): how the metric evolves given coherence structure.
 
 For the 1+1 implementation:

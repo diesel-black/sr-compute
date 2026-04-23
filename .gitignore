@@ -5,3 +5,4 @@ paper/
 __pycache__/
 .pytest_cache/
 .DS_Store
+CLAUDE.md
