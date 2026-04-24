@@ -1,6 +1,7 @@
 paper/
 *.json*
 *.npz*
+*.log
 .venv/
 __pycache__/
 .pytest_cache/
