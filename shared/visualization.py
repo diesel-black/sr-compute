@@ -2,7 +2,6 @@
 
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 import matplotlib.pyplot as plt
 
@@ -59,7 +58,9 @@ def save(fig: plt.Figure, name: str, *, experiment: str) -> None:
         print(f"  wrote {path.relative_to(repo_root)}")
 
 
-def annotate_commit(fig: plt.Figure, *, fontsize: int = 6) -> None:
+def annotate_commit(
+    fig: plt.Figure, *, fontsize: int = 6, x: float = 0.99, y: float = 0.01
+) -> None:
     """Draw short git commit hash in the lower-right corner of fig.
 
     No-op if git is unavailable or HEAD cannot be resolved.
@@ -71,10 +72,10 @@ def annotate_commit(fig: plt.Figure, *, fontsize: int = 6) -> None:
             cwd=Path(__file__).parent.parent,
         )
         sha = result.stdout.strip()
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return
     fig.text(
-        0.99, 0.01, sha,
+        x, y, sha,
         ha="right", va="bottom",
         fontsize=fontsize,
         color=COLORS["muted"],

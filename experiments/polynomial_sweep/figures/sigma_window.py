@@ -46,6 +46,16 @@ def _parse_sigma_window(path: Path) -> dict[float, dict[int, str]]:
     return result
 
 
+def _boundary_positions(row_data: dict[int, str]) -> list[float]:
+    """Return k0 midpoints where adjacent outcomes switch label."""
+    ordered = sorted(row_data.items())
+    boundaries: list[float] = []
+    for (k_prev, label_prev), (k_curr, label_curr) in zip(ordered[:-1], ordered[1:]):
+        if label_prev != label_curr:
+            boundaries.append(0.5 * (k_prev + k_curr))
+    return boundaries
+
+
 def make_sigma_window() -> plt.Figure:
     """Build and return the (k_0, sigma) outcome grid figure.
 
@@ -80,8 +90,8 @@ def make_sigma_window() -> plt.Figure:
         ax.spines["left"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
 
-        if abs(sigma - 0.5) < 1e-9:
-            ax.axvline(7.5, color="white", lw=1.5, zorder=5)
+        for x_boundary in _boundary_positions(row_data):
+            ax.axvline(x_boundary, color=COLORS["muted"], lw=0.8, zorder=5)
 
     axes[-1].spines["bottom"].set_visible(True)
     axes[-1].set_xlabel("$k_0$ (initial coupling intensity)")

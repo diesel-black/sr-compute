@@ -63,34 +63,36 @@ def make_eta_ladder() -> plt.Figure:
     fig, ax1 = plt.subplots(figsize=FIGSIZE["single_column"])
     ax2 = ax1.twinx()
 
-    ax1.semilogy(ns, etas, "o-", color=COLORS["primary"], lw=1.5, ms=5,
+    ax1.semilogy(ns, etas, "o-", color=COLORS["primary"], lw=1.6, ms=5.5,
                  label=r"$\eta_n$")
-    ax1.set_xlabel("polynomial order $n$")
-    ax1.set_ylabel(r"$\eta_n$ (steps to stabilize)")
+    ax1.set_xlabel("polynomial order $n$", fontsize=10)
+    ax1.set_ylabel(r"$\eta_n$ (steps to stabilize)", fontsize=10)
     ax1.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax1.xaxis.set_minor_locator(ticker.NullLocator())
 
-    ax2.plot(p_ns, p_vals, "s--", color=COLORS["secondary"], lw=1.0, ms=4,
+    ax2.plot(p_ns, p_vals, "s-", color=COLORS["muted"], lw=1.0, ms=4,
              label="$p_n$")
     ax2.axhline(5.0, color=COLORS["muted"], lw=0.8, ls=":")
-    ax2.text(max(ns) - 0.1, 5.15, "asymptote", ha="right", va="bottom",
-             fontsize=7, color=COLORS["muted"])
-    ax2.set_ylabel("local exponent $p_n$")
+    ax2.set_ylabel("local exponent $p_n$", fontsize=10)
     ax2.spines["right"].set_visible(True)
     ax2.spines["top"].set_visible(False)
 
-    idx3 = int(np.where(ns == 3.0)[0][0])
-    ax1.annotate(
-        "cubic aperture",
-        xy=(3, etas[idx3]),
-        xytext=(3.6, etas[idx3] * 4),
-        arrowprops=dict(arrowstyle="->", color=COLORS["accent"], lw=0.8),
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    # Anchor stays left (x unchanged); y > 1 nudges the box upward in axes
+    # fractions so the first p_n marker stays clear without shifting into the field.
+    ax1.legend(
+        h1 + h2,
+        l1 + l2,
+        loc="upper left",
+        frameon=False,
+        ncol=1,
         fontsize=7,
-        color=COLORS["accent"],
+        bbox_to_anchor=(0.02, 1.035),
     )
 
-    annotate_commit(fig)
     fig.tight_layout()
+    annotate_commit(fig)
     return fig
 
 
