@@ -7,7 +7,7 @@ Predictions are qualitative patterns across n, not fits to specific values.
 """
 
 # Sweep range
-N_VALUES = [2, 3, 4, 5, 6, 7, 8]
+N_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # Baseline SR parameters (Design Decision 2)
 BASELINE_PARAMS = {
@@ -44,6 +44,8 @@ INTEGRATION_OVERRIDES_BY_N = {
     6: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
     7: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
     8: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
+    9: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
+    10: {"method": "Radau", "max_step": 2.0, "rtol": 1e-6, "atol": 1e-9},
 }
 
 # ReconstructionLUT for h(C) during coupled IVP (see models.dim_1plus1.run_simulation)

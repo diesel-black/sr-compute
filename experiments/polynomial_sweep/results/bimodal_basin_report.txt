@@ -1,62 +1,222 @@
 Thread 7 bimodal basin characterization (n=4)
-Run timestamp: 2026-04-23 21:38:49 UTC
-quick_mode: True
+Run timestamp: 2026-04-23 23:08:55 UTC
+quick_mode: False
 basin_n: 4
 path_a_threshold (C_range): 1.0
 baseline_params: {'mu_sq': 1.0, 'alpha_phi': 1.0, 'gamma': 1.0, 'sigma': 0.5, 'lambda_B': 0.5, 'eta_g': 1.0, 'xi_g': 0.1}
-grid: N=32  L=10.0  dx=0.312500
-integration: method=Radau  t_span=(0.0, 5.0)  max_step=0.5
+grid: N=256  L=10.0  dx=0.039062
+integration: method=Radau  t_span=(0.0, 30.0)  max_step=2.0
 
 Classification: Path A = fine-structure death (C_range < threshold, short survival, growth > 1)
                 Path B = amplitude death     (C_range >= threshold, long survival, growth ≈ 1)
 
-=== Phase 1: IC amplitude sweep  (n_points=8  seeds/A=2  A_range=[1.000e-03, 1.000e+01]) ===
+=== Phase 1: IC amplitude sweep  (n_points=30  seeds/A=5  A_range=[1.000e-03, 1.000e+01]) ===
 
-        A | seed |    path | C_range |   kappa |   spec | growth |   outcome
-----------------------------------------------------------------------------
-1.000e-03 |    0 |       A |  0.0051 |  1.6642 | 0.2986 | 1.0000 | completed
-1.000e-03 |    1 |       A |  0.0063 | 19.5862 | 0.4303 | 1.0000 | completed
-3.728e-03 |    0 |       A |  0.0193 |  1.6725 | 0.2999 | 1.0000 | completed
-3.728e-03 |    1 |       A |  0.0235 | 20.3007 | 0.4352 | 1.0000 | completed
-1.389e-02 |    0 |       A |  0.0816 |  1.7411 | 0.3107 | 1.0000 | completed
-1.389e-02 |    1 |       A |  0.0879 | 23.5029 | 0.4535 | 1.0000 | completed
-5.179e-02 |    0 |       A |  0.2970 |  1.3973 | 0.2391 | 1.0000 | completed
-5.179e-02 |    1 |       A |  0.3493 | 64.0401 | 0.5231 | 1.0000 | completed
-1.931e-01 |    0 |       A |  0.2295 |  1.1419 | 0.1986 | 1.0000 | completed
-1.931e-01 |    1 |       B |  1.3127 | 52.5770 | 0.4043 | 1.0000 | completed
-7.197e-01 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
-7.197e-01 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
-2.683e+00 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
-2.683e+00 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
-1.000e+01 |    0 | unknown |     nan |     nan |    nan |    nan |  diverged
-1.000e+01 |    1 | unknown |     nan |     nan |    nan |    nan |  diverged
+        A | seed |    path |  C_range |     kappa |   spec | growth |  outcome
+------------------------------------------------------------------------------
+1.000e-03 |    0 |       B |   1.1694 |    1.0000 | 0.1772 | 1.0000 | terminal
+1.000e-03 |    1 |       A |   0.2047 |    2.3041 | 0.4203 | 1.2883 | terminal
+1.000e-03 |    2 |       A |   0.0957 |    1.5625 | 0.2975 | 1.2552 | terminal
+1.000e-03 |    3 |       B |  54.4461 |    3.1063 | 0.1773 | 1.0000 | terminal
+1.000e-03 |    4 |       B |  56.7911 |    3.0306 | 0.1773 | 1.0000 | terminal
+1.374e-03 |    0 |       B |   1.3207 |    1.0000 | 0.1772 | 1.0000 | terminal
+1.374e-03 |    1 |       A |   0.2208 |    2.4615 | 0.4369 | 1.1077 | terminal
+1.374e-03 |    2 |       A |   0.1030 |    1.6013 | 0.3060 | 1.1496 | terminal
+1.374e-03 |    3 |       B |  49.5632 |    3.0305 | 0.1773 | 1.0000 | terminal
+1.374e-03 |    4 |       B |  51.3450 |    3.0710 | 0.1773 | 1.0000 | terminal
+1.887e-03 |    0 |       B |   1.4815 |    1.0000 | 0.1772 | 1.0000 | terminal
+1.887e-03 |    1 |       A |   0.2384 |    2.6549 | 0.4541 | 1.1339 | terminal
+1.887e-03 |    2 |       A |   0.1109 |    1.6443 | 0.3152 | 1.2309 | terminal
+1.887e-03 |    3 |       B |  43.4047 |    3.1365 | 0.1773 | 1.0000 | terminal
+1.887e-03 |    4 |       B |  44.5064 |    3.0376 | 0.1773 | 1.0000 | terminal
+2.593e-03 |    0 |       B |   1.6310 |    1.0000 | 0.1772 | 1.0000 | terminal
+2.593e-03 |    1 |       A |   0.2573 |    2.8979 | 0.4717 | 1.1856 | terminal
+2.593e-03 |    2 |       A |   0.1194 |    1.6922 | 0.3251 | 1.1324 | terminal
+2.593e-03 |    3 |       B |  38.9851 |    3.0437 | 0.1773 | 1.0000 | terminal
+2.593e-03 |    4 |       B |  40.4199 |    3.1143 | 0.1773 | 1.0000 | terminal
+3.562e-03 |    0 |       B |  11.3954 |    1.0000 | 0.1772 | 1.0000 | terminal
+3.562e-03 |    1 |       A |   0.2778 |    3.2118 | 0.4896 | 1.1493 | terminal
+3.562e-03 |    2 |       A |   0.1286 |    1.7458 | 0.3357 | 1.3826 | terminal
+3.562e-03 |    3 |       B |  35.2887 |    3.0819 | 0.1773 | 1.0000 | terminal
+3.562e-03 |    4 |       B |  38.6791 |    3.0741 | 0.1773 | 1.0000 | terminal
+4.894e-03 |    0 |       B |  12.9795 |    1.0000 | 0.1772 | 1.0000 | terminal
+4.894e-03 |    1 |       A |   0.2999 |    3.6320 | 0.5074 | 1.1232 | terminal
+4.894e-03 |    2 |       A |   0.1385 |    1.8063 | 0.3473 | 1.1600 | terminal
+4.894e-03 |    3 |       B |  31.3271 |    3.0386 | 0.1773 | 1.0000 | terminal
+4.894e-03 |    4 |       B |  34.1348 |    3.0529 | 0.1773 | 1.0000 | terminal
+6.723e-03 |    0 |       B |   1.4142 |    1.0000 | 0.1772 | 1.0000 | terminal
+6.723e-03 |    1 |       A |   0.3238 |    4.2219 | 0.5249 | 1.1171 | terminal
+6.723e-03 |    2 |       A |   0.1492 |    1.8751 | 0.3596 | 1.1381 | terminal
+6.723e-03 |    3 |       B |  27.7083 |    3.0210 | 0.1773 | 1.0002 | terminal
+6.723e-03 |    4 |       B |  28.8128 |    3.0295 | 0.1773 | 1.0000 | terminal
+9.237e-03 |    0 |       B |  59.6838 |    3.0440 | 0.1773 | 1.0000 | terminal
+9.237e-03 |    1 |       A |   0.3494 |    5.1075 | 0.5418 | 1.1279 | terminal
+9.237e-03 |    2 |       A |   0.1609 |    1.9540 | 0.3729 | 1.2689 | terminal
+9.237e-03 |    3 |       B |  23.0789 |    3.0201 | 0.1775 | 1.0008 | terminal
+9.237e-03 |    4 |       B |  24.1691 |    3.0237 | 0.1773 | 1.0001 | terminal
+1.269e-02 |    0 |       B |  46.2972 |    3.1394 | 0.1773 | 1.0000 | terminal
+1.269e-02 |    1 |       A |   0.3768 |    6.5809 | 0.5579 | 1.1303 | terminal
+1.269e-02 |    2 |       A |   0.1735 |    2.0454 | 0.3871 | 1.1499 | terminal
+1.269e-02 |    3 |       B |  20.1737 |    3.0199 | 0.1774 | 1.0102 | terminal
+1.269e-02 |    4 |       B |  21.6289 |    3.0199 | 0.1776 | 1.0032 | terminal
+1.743e-02 |    0 |       B |  39.4469 |    3.0476 | 0.1773 | 1.0000 | terminal
+1.743e-02 |    1 |       A |   0.4062 |    9.5087 | 0.5731 | 1.1466 | terminal
+1.743e-02 |    2 |       A |   0.1872 |    2.1527 | 0.4023 | 1.4076 | terminal
+1.743e-02 |    3 |       B |  16.5798 |    3.0199 | 0.1779 | 1.0083 | terminal
+1.743e-02 |    4 |       B |  60.3160 |    1.1131 | 0.1773 | 1.0000 | terminal
+2.395e-02 |    0 |       B |  26.9744 |    3.0301 | 0.1773 | 1.0000 | terminal
+2.395e-02 |    1 |       A |   0.4377 |   18.1249 | 0.5874 | 1.2855 | terminal
+2.395e-02 |    2 |       A |   0.2020 |    2.2803 | 0.4186 | 1.3312 | terminal
+2.395e-02 |    3 |       B |  14.1427 |    2.9431 | 0.1777 | 1.0194 | terminal
+2.395e-02 |    4 |       B |  15.9583 |    3.0204 | 0.1778 | 1.0005 | terminal
+3.290e-02 |    0 |       B |  25.2190 |    3.0378 | 0.1773 | 1.0000 | terminal
+3.290e-02 |    1 |       A |   0.4715 |  619.7760 | 0.6008 | 1.1915 | terminal
+3.290e-02 |    2 |       A |   0.2182 |    2.4346 | 0.4353 | 1.1952 | terminal
+3.290e-02 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+3.290e-02 |    4 |       B |  13.1900 |    2.8844 | 0.1788 | 1.0032 | terminal
+4.520e-02 |    0 |       B |  20.2619 |    3.0204 | 0.1773 | 1.0005 | terminal
+4.520e-02 |    1 |       A |   0.5078 | 1956.3055 | 0.6137 | 1.1502 | terminal
+4.520e-02 |    2 |       A |   0.2358 |    2.6248 | 0.4527 | 1.3934 | terminal
+4.520e-02 |    3 |       B |   9.5063 |    2.6169 | 0.1784 | 1.0157 | terminal
+4.520e-02 |    4 |       B |  11.8292 |    2.7940 | 0.1791 | 1.0156 | terminal
+6.210e-02 |    0 |       B |  17.6277 |    3.0199 | 0.1775 | 1.0150 | terminal
+6.210e-02 |    1 |       A |   0.5473 | 1486.4192 | 0.6252 | 1.3882 | terminal
+6.210e-02 |    2 |       A |   0.2550 |    2.8653 | 0.4708 | 1.3044 | terminal
+6.210e-02 |    3 |       B |   8.7649 |    2.5524 | 0.1784 | 1.0308 | terminal
+6.210e-02 |    4 |       B | 105.0209 |    1.2929 | 0.1788 | 1.0000 | terminal
+8.532e-02 |    0 |       B |  11.9264 |    2.8007 | 0.1805 | 1.0055 | terminal
+8.532e-02 |    1 |       A |   0.5908 |  307.0188 | 0.6350 | 1.3149 | terminal
+8.532e-02 |    2 |       A |   0.2759 |    3.1791 | 0.4895 | 1.2158 | terminal
+8.532e-02 |    3 |       B |   7.3806 |    2.4181 | 0.1797 | 1.0590 | terminal
+8.532e-02 |    4 |       B |   7.3131 |    2.4110 | 0.1804 | 1.2173 | terminal
+1.172e-01 |    0 |       B |   7.8470 |    2.4657 | 0.1804 | 1.2502 | terminal
+1.172e-01 |    1 |       A |   0.6399 |  601.0252 | 0.6420 | 1.2525 | terminal
+1.172e-01 |    2 |       A |   0.2987 |    3.6063 | 0.5085 | 1.5364 | terminal
+1.172e-01 |    3 |       B |   5.9120 |    2.2482 | 0.1823 | 1.2920 | terminal
+1.172e-01 |    4 |       B |   5.6618 |    2.2154 | 0.1830 | 1.4328 | terminal
+1.610e-01 |    0 |       B |   5.3318 |    2.1700 | 0.1778 | 1.2160 | terminal
+1.610e-01 |    1 |       A |   0.6964 |  456.4144 | 0.6422 | 1.6684 | terminal
+1.610e-01 |    2 |       A |   0.3238 |    4.2229 | 0.5276 | 1.2665 | terminal
+1.610e-01 |    3 |       B |   4.7644 |    2.0853 | 0.1858 | 1.2732 | terminal
+1.610e-01 |    4 |       B |   4.8306 |    2.7767 | 0.1868 | 1.0678 | terminal
+2.212e-01 |    0 |       B |   3.9898 |    4.5977 | 0.1820 | 1.7087 | terminal
+2.212e-01 |    1 |       A |   0.7622 |  602.8030 | 0.6275 | 1.2952 | terminal
+2.212e-01 |    2 |       A |   0.3513 |    5.1913 | 0.5466 | 1.4110 | terminal
+2.212e-01 |    3 |       B |   4.0538 |    4.6926 | 0.1886 | 1.2125 | terminal
+2.212e-01 |    4 |       B |   4.4145 |    2.0281 | 0.1863 | 1.2146 | terminal
+3.039e-01 |    0 |       B |   3.3638 |    4.4297 | 0.1830 | 1.1734 | terminal
+3.039e-01 |    1 |       A |   0.8366 | 7180.6116 | 0.5848 | 1.2564 | terminal
+3.039e-01 |    2 |       A |   0.3815 |    6.9214 | 0.5645 | 1.2420 | terminal
+3.039e-01 |    3 |       B |  66.6384 |    1.8057 | 0.1995 | 1.0000 | terminal
+3.039e-01 |    4 |       B |   1.8021 |    1.4487 | 0.1879 | 1.0000 | terminal
+4.175e-01 |    0 |       B | 123.5289 |    1.9547 | 0.1796 | 1.0000 | terminal
+4.175e-01 |    1 |       A |   0.9097 |  921.4572 | 0.5202 | 1.4443 | terminal
+4.175e-01 |    2 |       A |   0.4136 |   10.6999 | 0.5796 | 1.2866 | terminal
+4.175e-01 |    3 |       B |   3.2496 |    3.2594 | 0.1970 | 1.2089 | terminal
+4.175e-01 |    4 |       B |   1.5428 |    1.4349 | 0.1864 | 1.0000 | terminal
+5.736e-01 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+5.736e-01 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+5.736e-01 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+5.736e-01 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+5.736e-01 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+7.880e-01 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+7.880e-01 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+7.880e-01 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+7.880e-01 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+7.880e-01 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+1.083e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+1.083e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+1.083e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+1.083e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+1.083e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+1.487e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+1.487e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+1.487e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+1.487e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+1.487e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+2.043e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+2.043e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+2.043e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+2.043e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+2.043e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+2.807e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+2.807e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+2.807e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+2.807e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+2.807e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+3.857e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+3.857e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+3.857e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+3.857e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+3.857e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+5.298e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+5.298e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+5.298e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+5.298e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+5.298e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+7.279e+00 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+7.279e+00 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+7.279e+00 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+7.279e+00 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+7.279e+00 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
+1.000e+01 |    0 | unknown |      nan |       nan |    nan |    nan | diverged
+1.000e+01 |    1 | unknown |      nan |       nan |    nan |    nan | diverged
+1.000e+01 |    2 | unknown |      nan |       nan |    nan |    nan | diverged
+1.000e+01 |    3 | unknown |      nan |       nan |    nan |    nan | diverged
+1.000e+01 |    4 | unknown |      nan |       nan |    nan |    nan | diverged
 
 Amplitude → path assignment (counts per A):
-  A=1.000e-03  A:2 B:0
-  A=3.728e-03  A:2 B:0
-  A=1.389e-02  A:2 B:0
-  A=5.179e-02  A:2 B:0
-  A=1.931e-01  A:1 B:1
-  A=7.197e-01  A:0 B:0 ?:2
-  A=2.683e+00  A:0 B:0 ?:2
-  A=1.000e+01  A:0 B:0 ?:2
+  A=1.000e-03  A:2 B:3
+  A=1.374e-03  A:2 B:3
+  A=1.887e-03  A:2 B:3
+  A=2.593e-03  A:2 B:3
+  A=3.562e-03  A:2 B:3
+  A=4.894e-03  A:2 B:3
+  A=6.723e-03  A:2 B:3
+  A=9.237e-03  A:2 B:3
+  A=1.269e-02  A:2 B:3
+  A=1.743e-02  A:2 B:3
+  A=2.395e-02  A:2 B:3
+  A=3.290e-02  A:2 B:2 ?:1
+  A=4.520e-02  A:2 B:3
+  A=6.210e-02  A:2 B:3
+  A=8.532e-02  A:2 B:3
+  A=1.172e-01  A:2 B:3
+  A=1.610e-01  A:2 B:3
+  A=2.212e-01  A:2 B:3
+  A=3.039e-01  A:2 B:3
+  A=4.175e-01  A:2 B:3
+  A=5.736e-01  A:0 B:0 ?:5
+  A=7.880e-01  A:0 B:0 ?:5
+  A=1.083e+00  A:0 B:0 ?:5
+  A=1.487e+00  A:0 B:0 ?:5
+  A=2.043e+00  A:0 B:0 ?:5
+  A=2.807e+00  A:0 B:0 ?:5
+  A=3.857e+00  A:0 B:0 ?:5
+  A=5.298e+00  A:0 B:0 ?:5
+  A=7.279e+00  A:0 B:0 ?:5
+  A=1.000e+01  A:0 B:0 ?:5
 
 Basin boundary estimate (amplitude axis):
-  Note: 6 runs diverged (NaN in n=4 even-branch reconstruction). Large-amplitude ICs push C below the principal-branch floor; these amplitudes are outside the valid domain of the n=4 coarse-graining map.
-  Last amplitude with all Path A seeds: A=5.179e-02
-  First amplitude with any Path B seed: A=1.931e-01
-  Boundary bracket: [5.179e-02, 1.931e-01]
-  Refine with denser sampling in this bracket to resolve amplitude-domain limits or seed splits if needed.
+  Note: 51 runs diverged (NaN in n=4 even-branch reconstruction). Large-amplitude ICs push C below the principal-branch floor; these amplitudes are outside the valid domain of the n=4 coarse-graining map.
+  Path B present at lowest tested amplitude (A=1.000e-03).
+  Boundary is below A_MIN; extend sweep downward.
 
-=== Phase 2: IC wavenumber sweep  (A_fixed=1.000e-02  k0_max=5) ===
+=== Phase 2: IC wavenumber sweep  (A_fixed=1.000e-02  k0_max=10) ===
 
-k0 | path | C_range |   kappa |   spec | growth |   outcome
+k0 | path | C_range |    kappa |   spec | growth |  outcome
 -----------------------------------------------------------
- 1 |    A |  0.4568 | 41.0690 | 0.4542 | 1.0000 | completed
- 2 |    A |  0.0012 |  2.5760 | 0.2992 | 1.0000 | completed
- 3 |    A |  0.0000 |  1.0002 | 0.1772 | 1.0000 | completed
- 4 |    A |  0.0000 |  1.0000 | 0.1772 | 1.0000 | completed
- 5 |    A |  0.0000 |  1.0000 | 0.1772 | 1.0000 | completed
+ 1 |    B |  1.2983 | 413.6016 | 0.3994 | 1.2190 | terminal
+ 2 |    B | 19.7841 |   3.0203 | 0.1773 | 1.0005 | terminal
+ 3 |    B | 42.5105 |   3.0247 | 0.1773 | 1.0000 | terminal
+ 4 |    B | 52.1292 |   3.0251 | 0.1773 | 1.0000 | terminal
+ 5 |    B | 59.2392 |   3.2024 | 0.1773 | 1.0000 | terminal
+ 6 |    B | 66.1019 |   3.0814 | 0.1773 | 1.0000 | terminal
+ 7 |    B | 72.7722 |   3.3113 | 0.1773 | 1.0000 | terminal
+ 8 |    A |  0.0614 |   1.0000 | 0.1772 | 1.0000 | terminal
+ 9 |    A |  0.0349 |   1.0000 | 0.1772 | 1.0000 | terminal
+10 |    A |  0.0247 |   1.0000 | 0.1772 | 1.0000 | terminal
 
 Wavenumber → path assignment:
-  Path A (fine-structure death): k0 = [1, 2, 3, 4, 5]
+  Path A (fine-structure death): k0 = [8, 9, 10]
+  Path B (amplitude death):      k0 = [1, 2, 3, 4, 5, 6, 7]

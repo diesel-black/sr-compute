@@ -1,0 +1,33 @@
+Thread 7 Arnold A_k classification of V_n critical points
+Generated: 2026-04-23 23:31:15 UTC
+Baseline parameters: gamma=1.0  mu_sq=1.0  alpha_phi=1.0
+Landscape: V_n(psi) = V_eff(F_n(psi)) = (mu_sq/2)*C^2 - alpha_phi*C^4,  C = psi + gamma*psi^n
+Method: exact symbolic differentiation via iterated npp.polyder + npp.polyval
+Vanishing threshold: |d_k| < 1e-8 declares order k vanishing
+
+Classification key:
+  A_1 (Morse)         first non-vanishing derivative is d2 (standard quadratic critical point)
+  A_2 (cusp)          d2 vanishes, first non-vanishing is d3
+  A_3 (swallowtail)   d2,d3 vanish, first non-vanishing is d4
+
+Metastable count: from count_metastable_states (find_peaks, prominence=0.04, distance=120)
+True maxima: all Morse maxima of V_n found by arnold_class (no prominence filter)
+True minima: all Morse minima of V_n
+
+Result: All critical points are Morse (A_1) for n=2..10 at baseline SR parameters.
+  The metastable parity pattern (2 for odd n; 3 for even n=4..8) is topological,
+  counting Morse critical points above the prominence threshold, not singularity-
+  theoretic. At n=10, the inner fold-point maximum achieves prominence > 0.04,
+  raising the even-n count from 3 to 4.
+
+  n  metastable_count  true_maxima  true_minima    arnold_classes       first_nonvanishing_orders        max_d2_range  confirmed
+--------------------------------------------------------------------------------------------------------------------------------
+  2                 2            3          2               A_1                               2        0.375..6.000          Y
+  3                 2            2          1               A_1                               2        4.737..4.737          Y
+  4                 3            3          2               A_1                               2       0.241..45.507          Y
+  5                 2            2          1               A_1                               2        3.155..3.155          Y
+  6                 3            4          3               A_1                               2      1.194..121.058          Y
+  7                 2            2          1               A_1                               2        2.422..2.422          Y
+  8                 3            4          3               A_1                               2      1.744..232.618          Y
+  9                 2            2          1               A_1                               2        2.139..2.139          Y
+ 10                 4            4          3               A_1                               2      1.921..380.181          Y
