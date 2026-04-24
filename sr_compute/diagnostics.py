@@ -6,7 +6,7 @@ Primary surface:
                                     position in the 12-signature space
     interpretive_condition_number — kappa(Pi) = (max|psi|/min|psi|)^(n-3)
     nonlocal_correction_growth    — eta mismatch across coarsening scales
-    count_metastable_states       — landscape maxima count (catastrophe class)
+    count_metastable_states       — prominence-thresholded maxima on the psi_bar landscape
 
 All functions accept NumPy arrays; see shared/metrics.py for full parameter docs.
 

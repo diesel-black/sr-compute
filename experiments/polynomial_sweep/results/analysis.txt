@@ -1,12 +1,13 @@
 Thread 7 polynomial sweep: analysis report
-Run timestamp: 2026-04-23 21:21:11 UTC
+Run timestamp: 2026-04-24 01:16:54 UTC
 ============================================================
 
 1. Predicted vs observed (main sweep, summary.json)
 
 Provisional structural targets (qualitative):
   R25: kappa(Pi) equals 1 at n=3 (exponent n-3 vanishes); n>3 amplifies spatial dynamic range.
-  R26: metastable landscape count often 2 at cubic, 3 at quartic (cusp vs swallowtail class).
+  Measurement 1: metastable_count is prominence-thresholded maxima on the psi_bar landscape
+    (not catastrophe class by polynomial order; see shared/metrics.count_metastable_states).
   R27: spectral ratio departs from diffuse baseline when leading singular mode concentrates.
   RG marginality: eta(f) and growth across coarse scales probe discrete brake consistency.
 
@@ -54,7 +55,7 @@ Interpretation template:
 3. Clean findings (hold regardless of which solver produced the snapshot, with caveats)
 
   Algebraic: at n=3, kappa(Pi) equals 1 by definition (exponent n-3=0); observed 1.
-  Metastable counts by n: n=2: 2, n=3: 2, n=4: 3, n=5: 2, n=6: 3, n=7: 2, n=8: 3.
+  Metastable counts by n (from summary.json): n=2: 2, n=3: 2, n=4: 3, n=5: 2, n=6: 3, n=7: 2, n=8: 3.
   Cross-n eta scaling at f=1 (sweep snapshots, n=3 to n=8): 9 -> 65.98 -> 332.3 -> 999 -> 2449 -> 5226.
   n=4 simultaneous breakpoint (sweep, Radau, early stop): kappa 3.983, spectral 0.5188, first growth 1.197.
 

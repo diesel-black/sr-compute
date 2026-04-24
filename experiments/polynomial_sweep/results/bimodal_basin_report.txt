@@ -46,7 +46,7 @@ Basin boundary estimate (amplitude axis):
   Last amplitude with all Path A seeds: A=5.179e-02
   First amplitude with any Path B seed: A=1.931e-01
   Boundary bracket: [5.179e-02, 1.931e-01]
-  Refine with denser sampling in this bracket to locate the swallowtail seam.
+  Refine with denser sampling in this bracket to resolve amplitude-domain limits or seed splits if needed.
 
 === Phase 2: IC wavenumber sweep  (A_fixed=1.000e-02  k0_max=5) ===
 

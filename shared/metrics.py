@@ -1,4 +1,4 @@
-"""Thread 7 polynomial-sweep measurements (R25, R26, R27, RG marginality)."""
+"""Thread 7 polynomial-sweep measurements (R25, R27, RG marginality, measurement 1 landscape count)."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def count_metastable_states(
     use_argrelmax: bool = False,
     argrel_order: int = 80,
 ) -> dict[str, Any]:
-    """Measurement 1: count local maxima of the psi-bar effective landscape (tests R26, catastrophe class).
+    """Measurement 1: count local maxima of the psi-bar effective landscape (prominence-thresholded).
 
     Stable equilibria correspond to **maxima** of the landscape as defined here because the CFE reaction
     term carries +V_eff'(C) (uphill flow on V_eff in C-space; see Appendix A.1.6).
@@ -50,8 +50,10 @@ def count_metastable_states(
     Peak detection defaults to ``scipy.signal.find_peaks`` (``peak_prominence``, ``peak_distance``).
     Set ``use_argrelmax=True`` to use ``argrelmax`` with ``argrel_order`` instead.
 
-    Provisional R26 pattern (subject to parameters): n=3 often shows two maxima; higher n may add
-    folds when the brake-free ``V_eff(C(psi))`` shape is resolved cleanly.
+    The returned integer is an instrument readout, not a catastrophe-class label: it depends on
+    ``peak_prominence`` and can change when an additional Morse maximum clears the threshold (e.g. at
+    high polynomial order). Symbolic work on the composite pullback ``V_eff ∘ F_n`` shows non-degenerate
+    (Morse) critical points at baseline SR parameters for the orders tested in Thread 7.
     """
     psi_min, psi_max, num_points = psi_bar_range
     psi = np.linspace(float(psi_min), float(psi_max), int(num_points), dtype=float)

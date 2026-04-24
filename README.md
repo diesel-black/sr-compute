@@ -8,7 +8,7 @@ For the full theory, axioms, Lagrangian, and dimensional roadmap, see the paper 
 
 ## Current focus
 
-"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 8 in the 1+1 model, with four simultaneous measurements testing provisional structural results R25 through R28 and related conjectures (Fisher-Rao identification, RG marginality of the brake). The experiment specification lives under `experiments/polynomial_sweep/`; the shared mathematics lives under `shared/`.
+"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 8 in the 1+1 model (configurable in `experiments/polynomial_sweep/config.py`), with four simultaneous measurements testing structural results R25 and R27, RG marginality probes, and measurement 1 (prominence-thresholded landscape maximum count). The experiment specification lives under `experiments/polynomial_sweep/`; the shared mathematics lives under `shared/`.
 
 ## Key findings
 
@@ -17,7 +17,15 @@ The polynomial sweep, solver-parity controls, intermediate-time snapshot, robust
 **Confirmed predictions:**
 
 - **Interpretive proportionality (R25):** κ(Π) = 1.0 exactly at n = 3 (algebraic identity, exponent n−3 = 0). At n = 4, κ ≈ 3.98 on the sweep final state, confirming supercubic amplification of spatial dynamic range when the field is structured.
-- **Catastrophe classification (R26):** 2 metastable maxima at n = 3 (cusp class), 3 at n = 4 (swallowtail class). The naive n−1 count does not extend to n ≥ 5 for this composite potential.
+- **Composite landscape geometry:** At baseline SR parameters, every critical point of the pullback effective landscape along the ψ̄ axis used in measurement 1 is **Morse** (non-degenerate) for polynomial orders tested through **n = 10** on the Thread 7 symbolic line. This replaces the earlier Arnold ADE-by-n reading: there are no degenerate catastrophe points in that composite landscape at baseline, so polynomial order does not label an A₂, A₃, … tower here.
+- **Measurement 1 (landscape maximum count):** `count_metastable_states` in `shared/metrics.py` counts **prominence-thresholded** local maxima (defaults `peak_prominence=0.04`, `peak_distance=120`). It is an instrument readout, not a structural theorem. With baseline parameters and that default prominence, the observed sequence for **n = 2, …, 10** is:
+
+| n | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|
+| metastable count | 2 | 2 | 3 | 2 | 3 | 2 | 3 | 2 | 2 | 4 |
+
+The **n = 10** entry (four maxima) breaks the alternating 2 / 3 pattern seen through n = 9 when an inner fold-point maximum crosses the prominence threshold. Extend `N_VALUES` in `config.py` and re-run the sweep to populate `summary.json` for n > 8 on this checkout.
+
 - **Cross-n non-locality scaling:** η grows as 9 → 66 → 332 → 999 from n = 3 through n = 6 on the sweep snapshots, confirming progressive degradation of the convolution-deconvolution cancellation (R3) with polynomial order (field-dependent magnitudes; interpret alongside integration time and spatial structure).
 - **n = 4 simultaneous breakpoint:** κ ≈ 3.98, spectral ratio ≈ 0.519, and the only coarsening growth rate > 1 (1.197) in the sweep dataset. Three independent channels spike at the same polynomial order.
 
@@ -36,22 +44,20 @@ Solver-parity controls (`parity_experiment.py`) support treating these regime di
 
 The η asymptotic is now pinned through n = 8: **9 → 66 → 332 → 999 → 2449 → 5226** for n = 3, 4, 5, 6, 7, 8. The growth is sub-exponential: successive ratios are 7.3, 5.0, 3.0, 2.45, 2.13, monotonically decreasing. The local power-law exponent asymptotes toward approximately 5 rather than diverging. This is a direct empirical bound on the nonlocal-correction cost past the cubic aperture: it grows as a finite power of n, not factorially. The cubic seam remains the unique aperture because η₃ = 9 is the only value small enough for the brake to hold without truncation.
 
-**Parity law (new):** Metastable count is exactly 2 for odd n and 3 for even n across the entire sweep n = 2, ..., 8 without exception:
+**n = 4 bimodal basin (full-resolution path, N = 256):** Path assignment is not driven by IC amplitude in the tested low-amplitude regime: for fixed seeds, Path A vs Path B is amplitude-independent; large amplitudes still hit the even-n principal-branch floor (divergence). The discriminator is initial wavenumber k₀ at fixed A = 10⁻² and baseline σ = 0.5: Path B (amplitude death) for k₀ = 1, …, 7 and Path A (fine-structure death) for k₀ = 8, …, 10, with a clean boundary between k₀ = 7 and k₀ = 8. IC power spectra across seeds do not explain the seed-wise Path A / Path B split (hypothesis ruled out on the instrument).
 
-| n | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-|---|---|---|---|---|---|---|---|
-| metastable count | 2 | 2 | 3 | 2 | 3 | 2 | 3 |
+**σ as bifurcation parameter for bimodality:** In this implementation, **σ** rescales brake strength and MFE coefficients (for example ζ_cubic(γ, σ) ∝ σ⁻³) as a **scalar** prefactor; it does not act as a spatial convolution width on the IVP. A coupling-scale sweep still shows that **two-path coexistence is not generic** at n = 4: at σ = 0.3 every tested k₀ stays Path B; at σ = 0.5 the k₀ threshold appears; at σ = 1.0 runs collapse toward Path A behavior without the same competitive window. Neither k₀^crit · σ ≈ const nor σ-independent k₀^crit holds across those regimes. The open structure is a **window in σ** (lower edge between 0.3 and 0.5, upper edge near 1.0) inside which (σ, k₀) admits a genuine bifurcation diagram.
 
-This is the Arnold ADE classification reading off the numerical landscape. A₂ cusp → 2, A₃ swallowtail → 3, A₄ butterfly → 2, A₅ wigwam → 3, and so on. The SR potential at each polynomial order occupies the canonical catastrophe class predicted by singularity theory, confirmed numerically across six consecutive orders.
 
-**n = 4 domain limit (new):** Large-amplitude initial conditions push C below the principal-branch floor of the n = 4 coarse-graining map (even-n reconstruction). This is a statement about the geometry of the swallowtail unfolding's pullback under F_n: the valid IC domain is bounded, not all of ℝ. The bimodal basin experiment (`bimodal_basin_experiment.py`) maps this domain limit and locates the Path A / Path B boundary at IC amplitude bracket [5.2×10⁻², 1.9×10⁻¹] in the quick-resolution run.
 
 **Open questions:**
 
+- Map the **σ-window** edges and the two-dimensional (σ, k₀) bifurcation set; classify boundary bifurcations if possible (here catastrophe language applies to **parameter** space, not to labeling by n).
+- **Seed-to-path** mechanism at n = 4 when amplitude and power spectrum do not discriminate (phase or higher-order functionals of the IC).
 - Why does the brake's lack of a saturation maximum at n ≥ 4 relate to avoidance of the metric terminal event? The connection between R4 (brake saturation at |ψ̄| = 1/√(3γ)) and §A.1.8 needs analytical investigation.
 - Parameter stress-testing: do the qualitative findings hold under varied μ², γ, σ? (Empirical check: `robustness_experiment.py` and `results/robustness_report.txt`.)
-- Full-resolution bimodal basin sweep: is the Path A / Path B boundary a smooth codimension-1 hypersurface in (A, k₀) IC space, as the swallowtail catastrophe predicts? Quick-resolution run brackets the amplitude boundary; production run at N=256 will resolve it.
 - What is the precise asymptotic exponent of the η power law as n → ∞?
+- **Metastable count beyond n = 10:** further fold pairs, saturation, or non-monotone behavior under a fixed prominence rule.
 
 ## Theory in brief
 
@@ -65,7 +71,7 @@ For the 1+1 implementation:
 
 - Coarse-graining at polynomial order n: C = ψ̄ + γₙ ψ̄ⁿ (in code: `psi_bar`, `gamma`, and integer `n`).
 - Effective potential: V_eff(C) = (μ²/2) C² − α_φ C⁴ (attractor vs autopoietic terms; parameter `alpha_phi` in code).
-- The CFE reaction term is +V′_eff(C), so the system ascends V_eff. Stable equilibria are at the local maxima of V_eff (at ±C*), while the origin is unstable. Measurement 1 counts local maxima of the ψ̄-space landscape used in `shared/metrics.py`.
+- The CFE reaction term is +V′_eff(C), so the system ascends V_eff. Stable equilibria are at the local maxima of V_eff (at ±C*), while the origin is unstable. Measurement 1 counts **prominence-thresholded** local maxima of the ψ̄-space effective landscape in `shared/metrics.py` (not a catastrophe-class label by n).
 - The coupling tensor K and brake functional B[K] discretize Appendix A sections A.1.2 through A.1.3. Numerical vs analytical brake variation is calibrated at n=3 and diverges for n>3 as tested in `tests/test_brake.py`.
 
 ## Repository layout
@@ -74,14 +80,14 @@ For the 1+1 implementation:
 sr-compute/
 ├── sr_compute/                  # Installable public API (pip install -e .)
 │   ├── __init__.py
-│   └── diagnostics.py           # r(T) and the four measurements as a clean import surface
+│   └── diagnostics.py           # r(T), κ, η, measurement 1; re-export surface from shared.metrics
 ├── shared/                      # Math primitives (general n), heavily tested
 │   ├── __init__.py
 │   ├── potentials.py            # V, Phi, V_eff, A(C), landscapes + brake quadrature
 │   ├── reconstruction.py        # F_n(psi_bar), dC/d(psi_bar), h(C), ReconstructionLUT
 │   ├── coupling.py              # Gaussian kernel, kappa_n, periodic K matrix
 │   ├── brake.py                 # zeta (cubic), analytical vs numerical dB/dC, saturation scale
-│   ├── metrics.py               # Four Thread 7 measurements (R25-R27 + RG marginality probe)
+│   ├── metrics.py               # R25, R27, RG marginality, measurement 1 (landscape count)
 │   └── visualization.py         # Placeholder (empty); sweep figures not yet implemented
 ├── models/
 │   ├── __init__.py
@@ -128,7 +134,7 @@ sr-compute/
 
 | Function | Measurement | Tests |
 | --- | --- | --- |
-| count_metastable_states | 1 | R26 (catastrophe classification by order n) |
+| count_metastable_states | 1 | Prominence-thresholded maxima on the ψ̄ landscape |
 | interpretive_condition_number | 2 | R25 (interpretive proportionality theorem) |
 | spectral_concentration_ratio | 3 | R27 (Fisher-Rao identification) |
 | nonlocal_correction_growth | 4 | RG marginality / non-local brake mismatch |
@@ -177,7 +183,7 @@ Notable checks:
 - Round-trip reconstruction h(C(ψ̄)) for odd n and principal-branch handling for even n.
 - `ReconstructionLUT` matches `brentq` within tolerance on random C samples.
 - At n=3, numerical dB/dC matches the analytical local formula (discrete Hilbert-Schmidt normalization is documented in `shared/brake.py`).
-- Metastable maxima count: 2 at n=3 (cusp), 3 at n=4 (swallowtail, brake-free landscape in tests where noted).
+- Metastable maxima count: baseline tests expect two maxima at n=3 and three at n=4 under `count_metastable_states` defaults (see `tests/test_metrics.py`).
 - Sweep driver end-to-end validation on quick settings (`test_sweep_driver.py`): `run_single` / `run_sweep` / save-load round-trip; saved `n*_measurements.json` includes an `outcome` field (`completed`, `terminal`, or `timeout`).
 - Snapshot experiment output shape and measurement completeness (quick mode, `test_snapshot_experiment.py`).
 - Robustness experiment (`test_robustness_experiment.py`): quick mode runs baseline plus two perturbations for n=3,4,5; all table columns finite; row keys use `outcome` (not raw SciPy `success`).
@@ -236,7 +242,7 @@ python -m experiments.polynomial_sweep.ensemble_experiment
 python -m experiments.polynomial_sweep.ensemble_experiment --quick
 ```
 
-Bimodal basin characterization at n=4: IC amplitude sweep (Phase 1) + sinusoidal wavenumber sweep (Phase 2). Maps the Path A / Path B boundary in IC space; tests the swallowtail prediction that the boundary is a smooth codimension-1 hypersurface. Writes `results/bimodal_basin_report.txt`:
+Bimodal basin characterization at n=4: IC amplitude sweep (Phase 1) + sinusoidal wavenumber sweep (Phase 2). Full-resolution runs show Path A vs Path B separated by **k₀** at fixed amplitude (not by amplitude alone) and expose the even-n principal-branch domain limit at large amplitude. Writes `results/bimodal_basin_report.txt`:
 
 ```bash
 python -m experiments.polynomial_sweep.bimodal_basin_experiment

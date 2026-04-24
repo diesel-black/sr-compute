@@ -15,10 +15,10 @@ Four Thread 7 measurement functions, re-exported from `shared.metrics`:
 
 | Function | What it measures |
 |---|---|
-| `count_metastable_states(psi_bar)` | Number of local minima of `V(ψ̄) = ψ̄²/2 + γψ̄ⁿ/(n·(n-1))` |
-| `interpretive_condition_number(C_field)` | `κ(Π) = σ₁ⁿ⁻³` — spatial dynamic range of the coarse-graining map |
-| `nonlocal_correction_growth(C_history)` | `η₂/η₁` — RG-scale growth of the nonlocal correction |
-| `spectral_concentration_ratio(T)` | `r(T) = σ₁²/‖T‖²_HS` — leading singular-mode concentration |
+| `count_metastable_states(...)` | Prominence-thresholded local maxima of the ψ̄ effective landscape (measurement 1) |
+| `interpretive_condition_number(C_field)` | `κ(Π) = σ₁ⁿ⁻³` — spatial dynamic range of the coarse-graining map (R25) |
+| `nonlocal_correction_growth(C_history)` | `η` across coarsening scales — RG-scale nonlocal brake mismatch |
+| `spectral_concentration_ratio(T)` | `r(T) = σ₁²/‖T‖²_HS` — leading singular-mode concentration (R27) |
 
 ```python
 from sr_compute.diagnostics import (
@@ -29,13 +29,12 @@ from sr_compute.diagnostics import (
 )
 ```
 
-## Findings summary (Thread 7, n=2..8)
+## Findings summary (Thread 7)
 
-**η asymptotic**: `r(T)` at `f=1` grows sub-exponentially with polynomial order:
-`9 → 66 → 332 → 999 → 2449 → 5226` (n=3..8). Local power-law exponent asymptotes toward ~5.
+**η asymptotic (n = 3, …, 8 on the default sweep):** η at the finest coarsening scale grows sub-exponentially: `9 → 66 → 332 → 999 → 2449 → 5226`. Local power-law exponent in n asymptotes toward roughly 5.
 
-**Parity law**: Metastable count is exactly 2 for odd n and 3 for even n across n=2..8.
-Corresponds to Arnold ADE classification (cusp/swallowtail/butterfly alternation).
+**Measurement 1:** Metastable counts are **prominence-thresholded** Morse maxima on the composite ψ̄ landscape, not Arnold ADE labels by polynomial order. With baseline parameters and default prominence **0.04**, the instrument sequence for **n = 2, …, 10** is **2, 2, 3, 2, 3, 2, 3, 2, 2, 4** (the n = 10 count breaks the alternating 2 / 3 pattern seen through n = 9). At baseline, every critical point of that landscape is **Morse** through the orders checked on the Thread 7 symbolic path (see repository `README.md`).
 
-**n=4 domain limit**: The even-n coarse-graining map has a bounded valid domain (`C ≥ C_floor ≈ −0.47` at γ=1).
-Large-amplitude ICs diverge; the basin bracket for the swallowtail boundary is `[5.2×10⁻², 1.9×10⁻¹]`.
+**n = 4 basin:** Path A vs Path B is separated by **initial wavenumber** k₀ at fixed amplitude under baseline σ; it is **not** a clean amplitude-only seam in the tested regime. **σ** acts as a **bifurcation parameter** for whether two paths coexist: strong brake (low σ) forces Path B across k₀; intermediate σ shows a k₀ threshold; weak brake (high σ) removes the competitive window.
+
+For domain limits, superseded readings, and open questions, see the main repository `README.md`.

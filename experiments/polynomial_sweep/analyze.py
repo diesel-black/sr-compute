@@ -126,7 +126,8 @@ def _write_predicted_observed(
         "",
         "Provisional structural targets (qualitative):",
         "  R25: kappa(Pi) equals 1 at n=3 (exponent n-3 vanishes); n>3 amplifies spatial dynamic range.",
-        "  R26: metastable landscape count often 2 at cubic, 3 at quartic (cusp vs swallowtail class).",
+        "  Measurement 1: metastable_count is prominence-thresholded maxima on the psi_bar landscape",
+        "    (not catastrophe class by polynomial order; see shared/metrics.count_metastable_states).",
         "  R27: spectral ratio departs from diffuse baseline when leading singular mode concentrates.",
         "  RG marginality: eta(f) and growth across coarse scales probe discrete brake consistency.",
         "",
@@ -294,10 +295,10 @@ def _write_clean_findings(summary: dict[str, Any], out: TextIO) -> None:
     )
     n_ladder_label = f"n={n_keys_gte3[0]} to n={n_keys_gte3[-1]}" if n_keys_gte3 else "n=3..?"
 
-    # Metastable count parity: odd n → 2, even n → 3 (structural if it holds across the sweep).
+    # Metastable counts: instrument readout from summary.json only (extended n may be absent).
     n_keys_all = sorted(summary.keys(), key=int)
     mc_pairs = [(nk, summary[nk].get("metastable_count")) for nk in n_keys_all]
-    mc_line = "  Metastable counts by n: " + ", ".join(
+    mc_line = "  Metastable counts by n (from summary.json): " + ", ".join(
         f"n={nk}: {_fmt(mc, 0)}" for nk, mc in mc_pairs if mc is not None
     ) + "."
 

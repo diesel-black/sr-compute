@@ -17,11 +17,11 @@ Phase 2 — IC wavenumber sweep:
   Sinusoidal IC: C(x) = A_FIXED * cos(2π k0 x / L), g = 1.
   k0 swept over integers 1..K0_MAX. Single deterministic IC per k0.
 
-Theoretical expectation (swallowtail catastrophe at n=4): the basin boundary
-between Path A and Path B should be a smooth codimension-1 surface in IC space.
-Phase 1 finds whether the A axis crosses this boundary and where. Phase 2 finds
-whether the dominant spatial wavenumber is the orthogonal IC coordinate that
-governs path assignment.
+Instrument design: Phase 1 sweeps IC amplitude at fixed random-phase micro-seeds to
+test whether path assignment varies with A. Phase 2 sweeps initial sinusoidal
+wavenumber k0 at fixed amplitude. Full-resolution runs showed path assignment
+amplitude-independent per seed in the tested A range, with a sharp k0 threshold
+between Path A and Path B at baseline sigma (see repository README).
 
 Run from repository root::
 
@@ -406,7 +406,7 @@ def _boundary_estimate(rows: list[dict[str, Any]]) -> list[str]:
         lines.append(
             "  Boundary bracket: [{:.3e}, {:.3e}]".format(last_all_a, first_any_b)
         )
-        lines.append("  Refine with denser sampling in this bracket to locate the swallowtail seam.")
+        lines.append("  Refine with denser sampling in this bracket to resolve amplitude-domain limits or seed splits if needed.")
     return lines
 
 
