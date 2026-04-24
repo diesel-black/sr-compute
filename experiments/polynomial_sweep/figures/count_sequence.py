@@ -43,14 +43,30 @@ def make_count_sequence() -> plt.Figure:
 
     fig, ax = plt.subplots(figsize=FIGSIZE["single_column"])
 
-    markerline, stemlines, baseline = ax.stem(ns, counts, linefmt="-",
-                                              markerfmt="o", basefmt=" ")
-    plt.setp(stemlines, color=COLORS["muted"], lw=1.0)
-    plt.setp(markerline, color=COLORS["primary"], ms=6, zorder=3)
-    plt.setp(baseline, visible=False)
+    # Lollipop profile: restrained geometry highlights the parity rhythm cleanly.
+    ax.vlines(ns, 0, counts, color=COLORS["muted"], lw=1.0, zorder=1)
+    ax.plot(ns, counts, "-", color=COLORS["muted"], lw=0.9, zorder=2)
+    ax.plot(
+        ns,
+        counts,
+        "o",
+        markerfacecolor="white",
+        markeredgecolor=COLORS["primary"],
+        markeredgewidth=1.5,
+        ms=6.5,
+        zorder=3,
+    )
 
     idx10 = int(np.where(ns == 10)[0][0])
-    ax.plot(ns[idx10], counts[idx10], "o", color=COLORS["accent"], ms=7, zorder=4)
+    ax.plot(
+        ns[idx10],
+        counts[idx10],
+        "o",
+        markerfacecolor=COLORS["accent"],
+        markeredgecolor=COLORS["accent"],
+        ms=7.2,
+        zorder=4,
+    )
     ax.annotate(
         "parity break at $n=10$",
         xy=(10, counts[idx10]),
