@@ -23,15 +23,15 @@ make figures
 
 ![eta ladder](docs/figures/polynomial_sweep/eta_ladder.png)
 
-$\eta_n$ vs $n$, polynomial order sweep $n=3..8$. The local exponent $p_n = \log(\eta_n/\eta_{n-1})/\log(n/(n-1))$ decreases from 6.9 toward 5; $\eta_3=9$ is the cubic aperture. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/eta_ladder.pdf)
+ηₙ vs n, polynomial-order sweep n=3..8. The local exponent pₙ decreases from 6.9 toward 5, and η₃=9 marks the cubic aperture baseline. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/eta_ladder.pdf)
 
 ![metastable count](docs/figures/polynomial_sweep/count_sequence.png)
 
-Prominence-thresholded ($0.04$) count of Morse maxima on $\mathcal{V}_n$, $n=2..10$. Alternating 3-for-even, 2-for-odd pattern through $n=8$ breaks at $n=10$ when an inner fold-point maximum crosses the prominence threshold. This is instrument readout under a chosen prominence, not a singularity-theoretic invariant. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/count_sequence.pdf)
+Prominence-thresholded (0.04) count of Morse maxima on Vₙ, n=2..10. The alternating 3-for-even, 2-for-odd pattern through n=8 breaks at n=10 when an inner fold-point maximum crosses the prominence threshold. This is instrument readout under a chosen prominence, not a singularity-theoretic invariant. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/count_sequence.pdf)
 
 ![sigma window](docs/figures/polynomial_sweep/sigma_window.png)
 
-$(k_0, \sigma)$ outcome grid for $n=4$. $\sigma=0.3$: universal Path B. $\sigma=0.5$: bimodal with clean boundary between $k_0=7$ and $k_0=8$. $\sigma=1.0$: universal Path A. Edges of the $\sigma$-window are open. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/sigma_window.pdf)
+(k₀, σ) outcome grid for n=4. σ=0.3: universal Path B. σ=0.5: bimodal with a clean boundary between k₀=7 and k₀=8. σ=1.0: universal Path A. Edges of the σ-window are open. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/sigma_window.pdf)
 
 ## Architecture
 
