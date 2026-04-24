@@ -8,7 +8,7 @@ For the full theory, axioms, Lagrangian, and dimensional roadmap, see the paper 
 
 ## Current focus
 
-"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 8 in the 1+1 model (configurable in `experiments/polynomial_sweep/config.py`), with four simultaneous measurements testing structural results R25 and R27, RG marginality probes, and measurement 1 (prominence-thresholded landscape maximum count). The experiment specification lives under `experiments/polynomial_sweep/`; the shared mathematics lives under `shared/`.
+"Thread 7" (Cubic Aperture): a polynomial-order sweep n = 2, ..., 10 in the 1+1 model by default (`experiments/polynomial_sweep/config.py`), with four simultaneous measurements testing structural results R25 and R27, RG marginality probes, and measurement 1 (prominence-thresholded landscape maximum count). The experiment specification lives under `experiments/polynomial_sweep/`; the shared mathematics lives under `shared/`.
 
 ## Key findings
 
@@ -17,14 +17,14 @@ The polynomial sweep, solver-parity controls, intermediate-time snapshot, robust
 **Confirmed predictions:**
 
 - **Interpretive proportionality (R25):** κ(Π) = 1.0 exactly at n = 3 (algebraic identity, exponent n−3 = 0). At n = 4, κ ≈ 3.98 on the sweep final state, confirming supercubic amplification of spatial dynamic range when the field is structured.
-- **Composite landscape geometry:** At baseline SR parameters, every critical point of the pullback effective landscape along the ψ̄ axis used in measurement 1 is **Morse** (non-degenerate) for polynomial orders tested through **n = 10** on the Thread 7 symbolic line. This replaces the earlier Arnold ADE-by-n reading: there are no degenerate catastrophe points in that composite landscape at baseline, so polynomial order does not label an A₂, A₃, … tower here.
+- **Composite landscape geometry:** At baseline SR parameters, every critical point of the pullback effective landscape along the ψ̄ axis used in measurement 1 is **Morse** (non-degenerate) for polynomial orders tested through **n = 10**. Check with `arnold_class` in `sr_compute.diagnostics` (exact polynomial derivatives) and the table driver `python -m experiments.polynomial_sweep.arnold_classification_report`, which writes `results/arnold_classification.txt`. This replaces the earlier Arnold ADE-by-n reading: there are no degenerate catastrophe points in that composite landscape at baseline, so polynomial order does not label an A₂, A₃, … tower here.
 - **Measurement 1 (landscape maximum count):** `count_metastable_states` in `shared/metrics.py` counts **prominence-thresholded** local maxima (defaults `peak_prominence=0.04`, `peak_distance=120`). It is an instrument readout, not a structural theorem. With baseline parameters and that default prominence, the observed sequence for **n = 2, …, 10** is:
 
 | n | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
 |---|---|---|---|---|---|---|---|---|---|
 | metastable count | 2 | 2 | 3 | 2 | 3 | 2 | 3 | 2 | 2 | 4 |
 
-The **n = 10** entry (four maxima) breaks the alternating 2 / 3 pattern seen through n = 9 when an inner fold-point maximum crosses the prominence threshold. Extend `N_VALUES` in `config.py` and re-run the sweep to populate `summary.json` for n > 8 on this checkout.
+The **n = 10** entry (four maxima) breaks the alternating 2 / 3 pattern seen through n = 9 when an inner fold-point maximum crosses the prominence threshold. Re-run `python -m experiments.polynomial_sweep.run` to refresh `summary.json` after changing `N_VALUES` or prominence defaults.
 
 - **Cross-n non-locality scaling:** η grows as 9 → 66 → 332 → 999 from n = 3 through n = 6 on the sweep snapshots, confirming progressive degradation of the convolution-deconvolution cancellation (R3) with polynomial order (field-dependent magnitudes; interpret alongside integration time and spatial structure).
 - **n = 4 simultaneous breakpoint:** κ ≈ 3.98, spectral ratio ≈ 0.519, and the only coarsening growth rate > 1 (1.197) in the sweep dataset. Three independent channels spike at the same polynomial order.
@@ -48,7 +48,7 @@ The η asymptotic is now pinned through n = 8: **9 → 66 → 332 → 999 → 24
 
 **σ as bifurcation parameter for bimodality:** In this implementation, **σ** rescales brake strength and MFE coefficients (for example ζ_cubic(γ, σ) ∝ σ⁻³) as a **scalar** prefactor; it does not act as a spatial convolution width on the IVP. A coupling-scale sweep still shows that **two-path coexistence is not generic** at n = 4: at σ = 0.3 every tested k₀ stays Path B; at σ = 0.5 the k₀ threshold appears; at σ = 1.0 runs collapse toward Path A behavior without the same competitive window. Neither k₀^crit · σ ≈ const nor σ-independent k₀^crit holds across those regimes. The open structure is a **window in σ** (lower edge between 0.3 and 0.5, upper edge near 1.0) inside which (σ, k₀) admits a genuine bifurcation diagram.
 
-
+**Superseded narrative (do not re-import):** Arnold ADE classification by polynomial order; metastable **parity as a law**; swallowtail **codimension-1 boundary primarily in amplitude** A; **kernel physical resolution** as the explanation of the k₀ ≈ 7.5 threshold.
 
 **Open questions:**
 
@@ -80,7 +80,7 @@ For the 1+1 implementation:
 sr-compute/
 ├── sr_compute/                  # Installable public API (pip install -e .)
 │   ├── __init__.py
-│   └── diagnostics.py           # r(T), κ, η, measurement 1; re-export surface from shared.metrics
+│   └── diagnostics.py           # r(T), κ, η, measurement 1, arnold_class (exact V_n critical points)
 ├── shared/                      # Math primitives (general n), heavily tested
 │   ├── __init__.py
 │   ├── potentials.py            # V, Phi, V_eff, A(C), landscapes + brake quadrature
@@ -102,7 +102,7 @@ sr-compute/
 │   ├── __init__.py
 │   └── polynomial_sweep/
 │       ├── __init__.py
-│       ├── config.py            # Baseline parameters, grid specs, per-n solver overrides (n=2..8)
+│       ├── config.py            # Baseline parameters, grid specs, per-n solver overrides (n=2..10)
 │       ├── run.py               # Sweep driver (--quick, --n, --no-save, optional --wallclock)
 │       ├── analyze.py           # Reads summary + parity JSON; writes analysis.txt (dynamic over n)
 │       ├── outcome_utils.py     # IVP outcome labels (completed / terminal / timeout) for reports
@@ -111,8 +111,10 @@ sr-compute/
 │       ├── robustness_experiment.py      # Single-parameter stress test, n=3,4,5
 │       ├── ensemble_experiment.py        # Multi-seed n=4 + n=3 control; optional wallclock per run
 │       ├── bimodal_basin_experiment.py   # IC amplitude + wavenumber sweep to map n=4 basin boundary
+│       ├── arnold_classification_report.py  # Tabulate arnold_class over n -> results/arnold_classification.txt
+│       ├── coupling_scale_experiment.py  # Seed spectra + σ sweep for k0 crit at n=4
 │       └── results/             # analysis.txt, reports, parity/; see .gitignore
-├── tests/                       # pytest suite (65 tests)
+├── tests/                       # pytest suite (90+ tests)
 ├── pyproject.toml               # pip install -e . for sr_compute package
 ├── pytest.ini                   # pythonpath = .
 └── LICENSE
@@ -122,7 +124,7 @@ sr-compute/
 
 **Still to build:** real contents for `shared/visualization.py`, implementations under `models/dim_2plus1/` and `models/dim_3plus1/`, and optional split of 1+1-specific coupling helpers into `models/dim_1plus1/coupling.py`.
 
-**Imports:** from the repo root, `pytest.ini` sets `pythonpath = .`; use `from models.dim_1plus1 import run_simulation` (re-exported from `mfe`) or import `cfe` / `mfe` submodules directly. External notebooks use `from sr_compute.diagnostics import spectral_concentration_ratio` after `pip install -e .`.
+**Imports:** from the repo root, `pytest.ini` sets `pythonpath = .`; use `from models.dim_1plus1 import run_simulation` (re-exported from `mfe`) or import `cfe` / `mfe` submodules directly. External notebooks use `from sr_compute.diagnostics import spectral_concentration_ratio` or `arnold_class` after `pip install -e .`.
 
 **Coupled IVP (numerics):** `integrate_coupled` advances `concat(C, log g)` so `g` stays positive and matches the metric used in `Delta_g C`; histories unpack to `g` via `exp`. Default `solve_ivp` events flag very small or very large `g` (see `models/dim_1plus1/mfe.py`). Stiff high-n runs use Radau via per-n overrides in `config.py`.
 
@@ -139,7 +141,7 @@ sr-compute/
 | spectral_concentration_ratio | 3 | R27 (Fisher-Rao identification) |
 | nonlocal_correction_growth | 4 | RG marginality / non-local brake mismatch |
 
-All four are re-exported from `sr_compute.diagnostics` for use in disorder-spectrum and clinical notebooks. Details, parameters, and edge cases (n=2 singular brake, optional brake omission in the landscape) are documented in `shared/metrics.py`.
+All four are re-exported from `sr_compute.diagnostics` for use in disorder-spectrum and clinical notebooks. **`arnold_class`** lives in the same module and is not one of the four sweep measurements; it classifies critical points of \(V_n = V_{\mathrm{eff}} \circ \mathcal{F}_n\) by exact Taylor coefficients. Details, parameters, and edge cases (n=2 singular brake, optional brake omission in the landscape) are documented in `shared/metrics.py` and `sr_compute/diagnostics.py`.
 
 ## Parameters
 
@@ -176,7 +178,7 @@ From the repository root:
 pytest tests/ -v
 ```
 
-`pytest.ini` sets `pythonpath = .` so imports resolve without extra flags. All 65 tests should pass. If an unrelated third-party `pytest` plugin breaks collection on your machine, run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
+`pytest.ini` sets `pythonpath = .` so imports resolve without extra flags. All tests in `tests/` should pass (90+ as of the Arnold diagnostic merge). If an unrelated third-party `pytest` plugin breaks collection on your machine, run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
 
 Notable checks:
 
@@ -184,6 +186,7 @@ Notable checks:
 - `ReconstructionLUT` matches `brentq` within tolerance on random C samples.
 - At n=3, numerical dB/dC matches the analytical local formula (discrete Hilbert-Schmidt normalization is documented in `shared/brake.py`).
 - Metastable maxima count: baseline tests expect two maxima at n=3 and three at n=4 under `count_metastable_states` defaults (see `tests/test_metrics.py`).
+- `arnold_class` returns Morse (`A_1`) critical-point data at baseline parameters for n = 2, …, 10 (`tests/test_arnold_class.py`).
 - Sweep driver end-to-end validation on quick settings (`test_sweep_driver.py`): `run_single` / `run_sweep` / save-load round-trip; saved `n*_measurements.json` includes an `outcome` field (`completed`, `terminal`, or `timeout`).
 - Snapshot experiment output shape and measurement completeness (quick mode, `test_snapshot_experiment.py`).
 - Robustness experiment (`test_robustness_experiment.py`): quick mode runs baseline plus two perturbations for n=3,4,5; all table columns finite; row keys use `outcome` (not raw SciPy `success`).
@@ -191,7 +194,7 @@ Notable checks:
 
 ## Running experiments
 
-Full polynomial sweep (N=256, n=2..8, on the order of a few minutes on a typical laptop):
+Full polynomial sweep (N=256, n=2..10 by default, on the order of several minutes on a typical laptop):
 
 ```bash
 python -m experiments.polynomial_sweep.run
@@ -247,6 +250,19 @@ Bimodal basin characterization at n=4: IC amplitude sweep (Phase 1) + sinusoidal
 ```bash
 python -m experiments.polynomial_sweep.bimodal_basin_experiment
 python -m experiments.polynomial_sweep.bimodal_basin_experiment --quick
+```
+
+Symbolic Arnold-class table over n (writes `results/arnold_classification.txt`):
+
+```bash
+python -m experiments.polynomial_sweep.arnold_classification_report
+```
+
+Coupling-scale experiment: IC power spectra for basin seeds plus σ sweep for k₀ discrimination at n=4 (writes `results/coupling_scale_report.txt`):
+
+```bash
+python -m experiments.polynomial_sweep.coupling_scale_experiment
+python -m experiments.polynomial_sweep.coupling_scale_experiment --quick
 ```
 
 ## License
