@@ -9,9 +9,29 @@ The process of building it has also refined the theory it implements.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install numpy scipy pytest
+pip install numpy scipy pytest matplotlib
 pip install -e .          # installs sr_compute.diagnostics as an importable package
 ```
+
+## Figures
+
+Regenerate all figures from committed text reports:
+
+```bash
+make figures
+```
+
+![eta ladder](docs/figures/polynomial_sweep/eta_ladder.png)
+
+$\eta_n$ vs $n$, polynomial order sweep $n=3..8$. The local exponent $p_n = \log(\eta_n/\eta_{n-1})/\log(n/(n-1))$ decreases from 6.9 toward 5; $\eta_3=9$ is the cubic aperture. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/eta_ladder.pdf)
+
+![metastable count](docs/figures/polynomial_sweep/count_sequence.png)
+
+Prominence-thresholded ($0.04$) count of Morse maxima on $\mathcal{V}_n$, $n=2..10$. Alternating 3-for-even, 2-for-odd pattern through $n=8$ breaks at $n=10$ when an inner fold-point maximum crosses the prominence threshold. This is instrument readout under a chosen prominence, not a singularity-theoretic invariant. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/count_sequence.pdf)
+
+![sigma window](docs/figures/polynomial_sweep/sigma_window.png)
+
+$(k_0, \sigma)$ outcome grid for $n=4$. $\sigma=0.3$: universal Path B. $\sigma=0.5$: bimodal with clean boundary between $k_0=7$ and $k_0=8$. $\sigma=1.0$: universal Path A. Edges of the $\sigma$-window are open. Data from commit `3a5582c`. [PDF](docs/figures/polynomial_sweep/sigma_window.pdf)
 
 ## Architecture
 
@@ -25,7 +45,7 @@ sr-compute/
 │   ├── coupling.py              # Gaussian kernel, kappa_n, periodic K matrix
 │   ├── brake.py                 # zeta, analytical vs numerical dB/dC
 │   ├── metrics.py               # The four Thread 7 measurements
-│   └── visualization.py         # Placeholder
+│   └── visualization.py         # Style module: apply_style, COLORS, FIGSIZE, save, annotate_commit
 ├── models/
 │   └── dim_1plus1/
 │       ├── cfe.py               # Laplace-Beltrami, CFE RHS, integrate_cfe (fixed g)
@@ -43,8 +63,13 @@ sr-compute/
 │       ├── bimodal_basin_experiment.py
 │       ├── coupling_scale_experiment.py
 │       ├── arnold_classification_report.py
-│       └── results/             # Committed text reports; .npz/.json excluded by .gitignore
+│       ├── results/             # Committed text reports; .npz/.json excluded by .gitignore
+│       └── figures/             # Figure scripts; read from results/, write to docs/figures/
+├── docs/
+│   └── figures/
+│       └── polynomial_sweep/    # Committed PNG + PDF (regenerate with `make figures`)
 ├── tests/                       # pytest suite (90+ tests)
+├── Makefile                     # `make figures` rebuilds all figures from committed text reports
 ├── pyproject.toml
 └── pytest.ini                   # pythonpath = .
 ```
@@ -192,6 +217,7 @@ python -m experiments.polynomial_sweep.coupling_scale_experiment [--quick]
 
 - Python 3.10+
 - NumPy, SciPy (linalg, integrate, signal, ndimage, optimize)
+- matplotlib 3.10.9 (figure scripts only; see `requirements.txt`)
 - pytest
 
 ## License
